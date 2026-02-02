@@ -11,7 +11,7 @@ export default async function ApprovalsPage() {
       users!jobs_assigned_to_fkey (full_name),
       evidence (*)
     `)
-        .eq('status', 'completed')
+        .eq('status', 'en_revision')
         .order('created_at', { ascending: false })
 
     return (

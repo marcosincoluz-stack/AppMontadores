@@ -58,6 +58,7 @@ export type Database = {
                     created_at: string | null
                     description: string | null
                     id: string
+                    rejection_reason: string | null
                     status: Database["public"]["Enums"]["job_status"] | null
                     title: string
                 }
@@ -69,6 +70,7 @@ export type Database = {
                     created_at?: string | null
                     description?: string | null
                     id?: string
+                    rejection_reason?: string | null
                     status?: Database["public"]["Enums"]["job_status"] | null
                     title: string
                 }
@@ -80,6 +82,7 @@ export type Database = {
                     created_at?: string | null
                     description?: string | null
                     id?: string
+                    rejection_reason?: string | null
                     status?: Database["public"]["Enums"]["job_status"] | null
                     title?: string
                 }
@@ -132,7 +135,7 @@ export type Database = {
         }
         Enums: {
             evidence_type: "photo" | "signature"
-            job_status: "pending" | "completed" | "approved" | "paid"
+            job_status: "pending" | "en_revision" | "completed" | "approved" | "paid"
             user_role: "admin" | "installer"
         }
         CompositeTypes: {

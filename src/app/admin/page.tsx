@@ -1,69 +1,32 @@
+import { ChartAreaInteractive } from "@/components/chart-area-interactive"
+import { DataTable } from "@/components/data-table"
+import { SectionCards } from "@/components/section-cards"
 import { createClient } from '@/utils/supabase/server'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import Link from 'next/link'
-import { Users, Briefcase, FileCheck } from 'lucide-react'
 
-export default async function AdminDashboard() {
+// Mapped data from DB instead of json file
+export default async function Page() {
     const supabase = await createClient()
 
-    // Fetch counts
-    const { count: pendingCount } = await supabase
+    // Fetch Jobs for the table
+    const { data: jobs } = await supabase
         .from('jobs')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'completed')
-
-    const { count: activeCount } = await supabase
-        .from('jobs')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'pending')
+        .select(`
+        *,
+        users!jobs_assigned_to_fkey (full_name)
+    `)
+        .order('created_at', { ascending: false })
+        .limit(10) // Limit for dashboard view
 
     return (
-        <div className="space-y-6">
-            <h2 className="text-3xl font-bold tracking-tight">Panel de Control</h2>
-
-            <div className="grid gap-4 md:grid-cols-3">
-                <Link href="/admin/approvals">
-                    <Card className="hover:bg-gray-50 transition-colors cursor-pointer">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Revisiones Pendientes</CardTitle>
-                            <FileCheck className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">{pendingCount || 0}</div>
-                            <p className="text-xs text-muted-foreground">
-                                Trabajos esperando aprobación
-                            </p>
-                        </CardContent>
-                    </Card>
-                </Link>
-                <Link href="/admin/jobs">
-                    <Card className="hover:bg-gray-50 transition-colors cursor-pointer">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Trabajos Activos</CardTitle>
-                            <Briefcase className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">{activeCount || 0}</div>
-                            <p className="text-xs text-muted-foreground">
-                                En proceso por montadores
-                            </p>
-                        </CardContent>
-                    </Card>
-                </Link>
-                <Link href="/admin/users">
-                    <Card className="hover:bg-gray-50 transition-colors cursor-pointer">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Montadores</CardTitle>
-                            <Users className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">-</div>
-                            <p className="text-xs text-muted-foreground">
-                                Gestionar equipo
-                            </p>
-                        </CardContent>
-                    </Card>
-                </Link>
+        <div className="flex flex-1 flex-col">
+            <div className="@container/main flex flex-1 flex-col gap-2">
+                <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+                    <SectionCards />
+                    <div className="px-4 lg:px-6">
+                        <ChartAreaInteractive />
+                    </div>
+                    <DataTable data={jobs || []} />
+                </div>
             </div>
         </div>
     )

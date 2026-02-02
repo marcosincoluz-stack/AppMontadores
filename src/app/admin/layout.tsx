@@ -1,5 +1,8 @@
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
+import { AppSidebar } from "@/components/app-sidebar"
+import { SiteHeader } from "@/components/site-header"
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 
 export default async function AdminLayout({
     children,
@@ -8,36 +11,38 @@ export default async function AdminLayout({
 }) {
     const supabase = await createClient()
 
+    // Verify auth and admin role
     const { data: { user }, error } = await supabase.auth.getUser()
-
     if (error || !user) {
         redirect('/login')
     }
 
-    // Check role
-    const { data: profile } = await supabase
+    const { data: userData, error: userError } = await supabase
         .from('users')
         .select('role')
         .eq('id', user.id)
         .single()
 
-    if (!profile || profile.role !== 'admin') {
-        // If not admin, redirect to installer or unauthorized
-        redirect('/installer') // or generic 'unauthorized' page
+    if (userError || userData?.role !== 'admin') {
+        redirect('/login')
     }
 
     return (
-        <div className="flex flex-col min-h-screen">
-            <header className="bg-slate-900 text-white p-4 flex justify-between items-center">
-                <h1 className="text-xl font-bold">Admin Dashboard</h1>
-                <div className="flex gap-4">
-                    {/* Navigation Links can go here */}
-                    <span className="text-sm">Hola, {user.email}</span>
+        <SidebarProvider
+            style={
+                {
+                    "--sidebar-width": "calc(var(--spacing) * 72)",
+                    "--header-height": "calc(var(--spacing) * 12)",
+                } as React.CSSProperties
+            }
+        >
+            <AppSidebar variant="inset" />
+            <SidebarInset>
+                <SiteHeader />
+                <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+                    {children}
                 </div>
-            </header>
-            <main className="flex-1 p-8 bg-gray-50">
-                {children}
-            </main>
-        </div>
+            </SidebarInset>
+        </SidebarProvider>
     )
 }

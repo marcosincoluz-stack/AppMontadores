@@ -31,9 +31,6 @@ export default async function InstallerLayout({
 
     return (
         <div className="flex flex-col min-h-screen bg-gray-50">
-            <header className="bg-blue-600 text-white p-4 sticky top-0 z-10 shadow-md">
-                <h1 className="text-lg font-bold">Mis Trabajos</h1>
-            </header>
             <main className="flex-1 p-4">
                 {children}
             </main>

@@ -27,12 +27,12 @@ export default async function InstallerDashboard() {
                             <CardTitle className="text-lg">{job.title}</CardTitle>
                             <span className={`px-2 py-1 rounded-full text-xs font-semibold
                     ${job.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : ''}
-                    ${job.status === 'completed' ? 'bg-blue-100 text-blue-800' : ''}
+                    ${job.status === 'en_revision' ? 'bg-blue-100 text-blue-800' : ''}
                     ${job.status === 'approved' ? 'bg-green-100 text-green-800' : ''}
                     ${job.status === 'paid' ? 'bg-gray-100 text-gray-800' : ''}
                    `}>
                                 {job.status === 'pending' && 'Pendiente'}
-                                {job.status === 'completed' && 'Revisión'}
+                                {job.status === 'en_revision' && 'En Revisión'}
                                 {job.status === 'approved' && 'Aprobado'}
                                 {job.status === 'paid' && 'Pagado'}
                             </span>
