@@ -8,6 +8,7 @@ import {
     TableRow,
 } from '@/components/ui/table'
 import { CreateJobDialog } from './create-job-dialog'
+import { JobRowActions } from './job-row-actions'
 import { Badge } from '@/components/ui/badge' // Need to add badge component? Or just style it manually.
 
 export default async function AdminJobsPage() {
@@ -47,6 +48,7 @@ export default async function AdminJobsPage() {
                             <TableHead>Asignado a</TableHead>
                             <TableHead>Estado</TableHead>
                             <TableHead className="text-right">Monto</TableHead>
+                            <TableHead className="w-[50px]"></TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -74,11 +76,14 @@ export default async function AdminJobsPage() {
                                 <TableCell className="text-right">
                                     {job.amount ? `${job.amount} €` : '-'}
                                 </TableCell>
+                                <TableCell>
+                                    <JobRowActions job={job} />
+                                </TableCell>
                             </TableRow>
                         ))}
                         {(!jobs || jobs.length === 0) && (
                             <TableRow>
-                                <TableCell colSpan={6} className="text-center py-10 text-gray-500">
+                                <TableCell colSpan={7} className="text-center py-10 text-gray-500">
                                     No hay trabajos registrados.
                                 </TableCell>
                             </TableRow>

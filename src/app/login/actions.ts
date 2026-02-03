@@ -38,3 +38,9 @@ export async function login(prevState: any, formData: FormData) {
         redirect('/installer')
     }
 }
+
+export async function signOut() {
+    const supabase = await createClient()
+    await supabase.auth.signOut()
+    redirect('/login')
+}

@@ -4,9 +4,7 @@ import { useState, useTransition } from 'react'
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog'
-import { Textarea } from '@/components/ui/textarea'
-import { Label } from '@/components/ui/label'
+import { RejectionReasonDialog } from '@/components/rejection-reason-dialog'
 import { approveJob, rejectJob } from './actions'
 import { toast } from 'sonner'
 import { CheckCircle, Loader2, Download, XCircle, Camera, FileSignature } from 'lucide-react'
@@ -29,7 +27,7 @@ type Job = {
 export function JobApprovalCard({ job }: { job: Job }) {
     const [isPending, startTransition] = useTransition()
     const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false)
-    const [rejectReason, setRejectReason] = useState('')
+    // Removed local rejectReason state as it's handled by the dialog
 
     const photos = job.evidence.filter(e => e.type === 'photo')
     const signatures = job.evidence.filter(e => e.type === 'signature')
@@ -45,16 +43,18 @@ export function JobApprovalCard({ job }: { job: Job }) {
         })
     }
 
-    const handleReject = () => {
-        startTransition(async () => {
-            const result = await rejectJob(job.id, rejectReason)
-            if (result?.error) {
-                toast.error(result.error)
-            } else {
-                toast.success('Trabajo rechazado. El montador ha sido notificado.')
-                setIsRejectDialogOpen(false)
-                setRejectReason('')
-            }
+    const handleReject = (reason: string) => {
+        return new Promise<void>((resolve) => {
+            startTransition(async () => {
+                const result = await rejectJob(job.id, reason)
+                if (result?.error) {
+                    toast.error(result.error)
+                } else {
+                    toast.success('Trabajo rechazado. El montador ha sido notificado.')
+                    setIsRejectDialogOpen(false)
+                }
+                resolve()
+            })
         })
     }
 
@@ -133,38 +133,14 @@ export function JobApprovalCard({ job }: { job: Job }) {
                 </CardFooter>
             </Card>
 
-            <Dialog open={isRejectDialogOpen} onOpenChange={setIsRejectDialogOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Rechazar trabajo: {job.title}</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4 py-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="reject-reason">Motivo del rechazo</Label>
-                            <Textarea
-                                id="reject-reason"
-                                placeholder="Ej: Falta foto del cableado, acta ilegible..."
-                                value={rejectReason}
-                                onChange={(e) => setRejectReason(e.target.value)}
-                                rows={3}
-                            />
-                        </div>
-                    </div>
-                    <DialogFooter>
-                        <DialogClose asChild>
-                            <Button variant="outline">Cancelar</Button>
-                        </DialogClose>
-                        <Button
-                            variant="destructive"
-                            onClick={handleReject}
-                            disabled={isPending || !rejectReason.trim()}
-                        >
-                            {isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
-                            Confirmar Rechazo
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+            <RejectionReasonDialog
+                open={isRejectDialogOpen}
+                onOpenChange={setIsRejectDialogOpen}
+                onConfirm={handleReject}
+                title={`Rechazar trabajo: ${job.title}`}
+                confirmText="Confirmar Rechazo"
+                isPending={isPending}
+            />
         </>
     )
 }

@@ -5,7 +5,10 @@ import { UploadEvidenceForm } from './upload-evidence-form'
 import { Badge } from '@/components/ui/badge'
 import { CompleteJobButton } from './complete-job-button'
 import { ArrowLeft, Camera, FileSignature, AlertTriangle } from 'lucide-react'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Info } from 'lucide-react'
 import Link from 'next/link'
+import { EvidenceCard } from './evidence-card'
 
 export default async function JobDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params
@@ -40,21 +43,41 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
             </Link>
 
             {job.rejection_reason && (
-                <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-lg text-red-800">
-                    <AlertTriangle className="h-5 w-5 mt-0.5 shrink-0" />
-                    <div>
-                        <p className="font-semibold">Trabajo rechazado</p>
-                        <p className="text-sm mt-1">{job.rejection_reason}</p>
-                        <p className="text-xs mt-2 text-red-600">Por favor, corrige las evidencias indicadas y vuelve a enviar.</p>
-                    </div>
-                </div>
+                <Alert variant="destructive" className="mb-6">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertTitle>Trabajo rechazado</AlertTitle>
+                    <AlertDescription className="mt-2 text-sm">
+                        <p className="font-medium text-xs uppercase tracking-wide opacity-80 mb-1">Motivos:</p>
+                        <ul className="list-disc list-inside space-y-1 mb-3">
+                            {job.rejection_reason.split('.').filter((r: string) => r.trim().length > 0).map((reason: string, i: number) => (
+                                <li key={i} className="leading-snug">
+                                    {reason.trim()}
+                                </li>
+                            ))}
+                        </ul>
+                        <div className="flex items-center gap-2 text-xs font-semibold bg-destructive/10 p-2 rounded text-destructive-foreground">
+                            <Info className="h-4 w-4 shrink-0" />
+                            <span>Por favor, corrige las evidencias indicadas y vuelve a enviar.</span>
+                        </div>
+                    </AlertDescription>
+                </Alert>
             )}
 
             <Card className="shadow-sm">
                 <CardHeader className="pb-2 pt-4 px-4">
                     <div className="flex justify-between items-start">
                         <CardTitle className="text-lg">{job.title}</CardTitle>
-                        <Badge variant="outline" className="text-xs">{job.status}</Badge>
+                        <Badge variant="outline" className={`text-xs font-normal tracking-wide uppercase border-0
+                            ${job.status === 'pending' ? 'bg-amber-100 text-amber-700 hover:bg-amber-100' : ''}
+                            ${job.status === 'en_revision' ? 'bg-blue-100 text-blue-700 hover:bg-blue-100' : ''}
+                            ${job.status === 'approved' ? 'bg-green-100 text-green-700 hover:bg-green-100' : ''}
+                            ${job.status === 'paid' ? 'bg-zinc-100 text-zinc-700 hover:bg-zinc-100' : ''}
+                        `}>
+                            {job.status === 'pending' && 'Pendiente'}
+                            {job.status === 'en_revision' && 'En Revisión'}
+                            {job.status === 'approved' && 'Aprobado'}
+                            {job.status === 'paid' && 'Pagado'}
+                        </Badge>
                     </div>
                 </CardHeader>
                 <CardContent className="pb-4 px-4 space-y-3">
@@ -94,12 +117,18 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
                             title="Añadir Foto"
                             evidenceType="photo"
                         />
+
+
                         {photos.length > 0 && (
                             <div className="mt-4 grid grid-cols-3 gap-2">
                                 {photos.map((photo) => (
-                                    <div key={photo.id} className="aspect-square rounded-lg overflow-hidden border bg-gray-50">
-                                        <img src={photo.url} alt="Foto" className="w-full h-full object-cover" />
-                                    </div>
+                                    <EvidenceCard
+                                        key={photo.id}
+                                        id={photo.id}
+                                        url={photo.url}
+                                        jobId={job.id}
+                                        isPending={job.status === 'pending'}
+                                    />
                                 ))}
                             </div>
                         )}
@@ -123,9 +152,13 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
                         {signatures.length > 0 && (
                             <div className="mt-4 grid grid-cols-3 gap-2">
                                 {signatures.map((sig) => (
-                                    <div key={sig.id} className="aspect-square rounded-lg overflow-hidden border bg-gray-50">
-                                        <img src={sig.url} alt="Acta" className="w-full h-full object-cover" />
-                                    </div>
+                                    <EvidenceCard
+                                        key={sig.id}
+                                        id={sig.id}
+                                        url={sig.url}
+                                        jobId={job.id}
+                                        isPending={job.status === 'pending'}
+                                    />
                                 ))}
                             </div>
                         )}
