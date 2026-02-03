@@ -63,42 +63,36 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
                 </Alert>
             )}
 
-            <Card className="shadow-sm">
-                <CardHeader className="pb-2 pt-4 px-4">
-                    <div className="flex justify-between items-start">
-                        <CardTitle className="text-lg">{job.title}</CardTitle>
-                        <Badge variant="outline" className={`text-xs font-normal tracking-wide uppercase border-0
-                            ${job.status === 'pending' ? 'bg-amber-100 text-amber-700 hover:bg-amber-100' : ''}
-                            ${job.status === 'en_revision' ? 'bg-blue-100 text-blue-700 hover:bg-blue-100' : ''}
-                            ${job.status === 'approved' ? 'bg-green-100 text-green-700 hover:bg-green-100' : ''}
-                            ${job.status === 'paid' ? 'bg-zinc-100 text-zinc-700 hover:bg-zinc-100' : ''}
-                        `}>
-                            {job.status === 'pending' && 'Pendiente'}
-                            {job.status === 'en_revision' && 'En Revisión'}
-                            {job.status === 'approved' && 'Aprobado'}
-                            {job.status === 'paid' && 'Pagado'}
-                        </Badge>
+            <div className="bg-white rounded-lg shadow-sm border p-3 space-y-2">
+                <div className="flex justify-between items-start gap-2">
+                    <h1 className="text-lg font-bold leading-tight line-clamp-2">{job.title}</h1>
+                    <Badge variant="outline" className={`text-[10px] h-5 font-normal tracking-wide uppercase border-0 shrink-0
+                        ${job.status === 'pending' ? 'bg-amber-100 text-amber-700 hover:bg-amber-100' : ''}
+                        ${job.status === 'en_revision' ? 'bg-blue-100 text-blue-700 hover:bg-blue-100' : ''}
+                        ${job.status === 'approved' ? 'bg-green-100 text-green-700 hover:bg-green-100' : ''}
+                        ${job.status === 'paid' ? 'bg-zinc-100 text-zinc-700 hover:bg-zinc-100' : ''}
+                    `}>
+                        {job.status === 'pending' && 'Pendiente'}
+                        {job.status === 'en_revision' && 'En Revisión'}
+                        {job.status === 'approved' && 'Aprobado'}
+                        {job.status === 'paid' && 'Pagado'}
+                    </Badge>
+                </div>
+
+                <div className="grid grid-cols-[auto_1fr] gap-x-2 gap-y-0.5 text-sm">
+                    <span className="text-muted-foreground font-medium text-xs uppercase self-baseline pt-0.5">Cliente:</span>
+                    <span className="font-medium truncate">{job.client_name}</span>
+
+                    <span className="text-muted-foreground font-medium text-xs uppercase self-baseline pt-0.5">Dirección:</span>
+                    <span className="text-muted-foreground leading-tight">{job.address}</span>
+                </div>
+
+                {job.description && (
+                    <div className="pt-2 mt-1 border-t text-xs text-muted-foreground">
+                        <p className="line-clamp-2">{job.description}</p>
                     </div>
-                </CardHeader>
-                <CardContent className="pb-4 px-4 space-y-3">
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Cliente</h3>
-                            <p className="text-sm font-medium">{job.client_name}</p>
-                        </div>
-                        <div>
-                            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Dirección</h3>
-                            <p className="text-sm line-clamp-2">{job.address}</p>
-                        </div>
-                    </div>
-                    {job.description && (
-                        <div>
-                            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Descripción</h3>
-                            <p className="text-sm text-gray-700 whitespace-pre-wrap line-clamp-3">{job.description}</p>
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
+                )}
+            </div>
 
             <div className="space-y-4">
                 <div className="space-y-6">
