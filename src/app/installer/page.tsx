@@ -96,6 +96,24 @@ export default async function InstallerDashboard() {
                                         )}
                                     </div>
 
+                                    <div className="flex flex-col items-end gap-1.5 self-center">
+                                        <div className={`flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded-full
+                                            ${job.status === 'paid'
+                                                ? 'bg-green-50 text-green-700 border border-green-100'
+                                                : 'bg-slate-50 text-slate-600 border border-slate-100'
+                                            }
+                                        `}>
+                                            {job.status === 'paid' ? (
+                                                <CheckCircle className="h-3.5 w-3.5" />
+                                            ) : (
+                                                <Clock className="h-3.5 w-3.5" />
+                                            )}
+                                            <span>
+                                                {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(job.amount || 0)}
+                                            </span>
+                                        </div>
+                                    </div>
+
                                     <ChevronRight className="h-4 w-4 text-muted-foreground/50 group-hover:text-foreground shrink-0 transition-colors" />
                                 </div>
                             </Card>

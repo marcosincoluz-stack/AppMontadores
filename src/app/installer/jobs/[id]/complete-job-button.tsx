@@ -21,6 +21,15 @@ export function CompleteJobButton({ jobId, initialPhotoCount = 0, initialSignatu
     const router = useRouter()
     const supabase = createClient()
 
+    // Sync state with props when they change (e.g. after router.refresh())
+    useEffect(() => {
+        setPhotoCount(initialPhotoCount)
+    }, [initialPhotoCount])
+
+    useEffect(() => {
+        setSignatureCount(initialSignatureCount)
+    }, [initialSignatureCount])
+
     const canComplete = photoCount > 0 && signatureCount > 0
 
     useEffect(() => {

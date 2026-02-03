@@ -95,80 +95,91 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
             </div>
 
             <div className="space-y-4">
-                <div className="space-y-6">
-                    <div>
-                        <h3 className="text-lg font-bold mb-2 flex items-center gap-2">
-                            <Camera className="h-5 w-5" />
-                            Fotos del Trabajo
-                            <span className={`text-sm font-normal px-2 py-0.5 rounded-full ${photoCount > 0 ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
-                                {photoCount} subida{photoCount !== 1 ? 's' : ''}
-                            </span>
-                        </h3>
-                        <p className="text-sm text-gray-500 mb-4">Sube fotos que evidencien el trabajo realizado.</p>
-                        <UploadEvidenceForm
-                            jobId={job.id}
-                            jobStatus={job.status || 'pending'}
-                            title="Añadir Foto"
-                            evidenceType="photo"
-                        />
-
-
-                        {photos.length > 0 && (
-                            <div className="mt-4 grid grid-cols-3 gap-2">
-                                {photos.map((photo) => (
-                                    <EvidenceCard
-                                        key={photo.id}
-                                        id={photo.id}
-                                        url={photo.url}
-                                        jobId={job.id}
-                                        isPending={job.status === 'pending'}
-                                    />
-                                ))}
+                <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-3">
+                        {/* Photos Column */}
+                        <div className="space-y-3">
+                            <div className="flex flex-col gap-1">
+                                <h3 className="text-sm font-bold flex items-center gap-1.5">
+                                    <Camera className="h-4 w-4" />
+                                    Fotos
+                                    <span className={`text-[10px] font-normal px-1.5 py-0.5 rounded-full ${photoCount > 0 ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                                        {photoCount}
+                                    </span>
+                                </h3>
+                                <UploadEvidenceForm
+                                    jobId={job.id}
+                                    jobStatus={job.status || 'pending'}
+                                    title="Añadir Foto"
+                                    evidenceType="photo"
+                                />
                             </div>
-                        )}
+
+                            {photos.length > 0 && (
+                                <div className="grid grid-cols-1 gap-2">
+                                    {photos.map((photo) => (
+                                        <EvidenceCard
+                                            key={photo.id}
+                                            id={photo.id}
+                                            url={photo.url}
+                                            jobId={job.id}
+                                            isPending={job.status === 'pending'}
+                                        />
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Signature Column */}
+                        <div className="space-y-3 border-l pl-3 border-gray-100">
+                            <div className="flex flex-col gap-1">
+                                <h3 className="text-sm font-bold flex items-center gap-1.5">
+                                    <FileSignature className="h-4 w-4" />
+                                    Acta
+                                    <span className={`text-[10px] font-normal px-1.5 py-0.5 rounded-full ${signatureCount > 0 ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                                        {signatureCount}
+                                    </span>
+                                </h3>
+                                <UploadEvidenceForm
+                                    jobId={job.id}
+                                    jobStatus={job.status || 'pending'}
+                                    title="Añadir Acta"
+                                    evidenceType="signature"
+                                />
+                            </div>
+
+                            {signatures.length > 0 && (
+                                <div className="grid grid-cols-1 gap-2">
+                                    {signatures.map((sig) => (
+                                        <EvidenceCard
+                                            key={sig.id}
+                                            id={sig.id}
+                                            url={sig.url}
+                                            jobId={job.id}
+                                            isPending={job.status === 'pending'}
+                                        />
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                     </div>
 
-                    <div className="pt-4 border-t">
-                        <h3 className="text-lg font-bold mb-2 flex items-center gap-2">
-                            <FileSignature className="h-5 w-5" />
-                            Acta Firmada
-                            <span className={`text-sm font-normal px-2 py-0.5 rounded-full ${signatureCount > 0 ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
-                                {signatureCount} subida{signatureCount !== 1 ? 's' : ''}
-                            </span>
-                        </h3>
-                        <p className="text-sm text-gray-500 mb-4">Obligatorio: Sube una foto del acta firmada por el cliente.</p>
-                        <UploadEvidenceForm
-                            jobId={job.id}
-                            jobStatus={job.status || 'pending'}
-                            title="Añadir Acta Firmada"
-                            evidenceType="signature"
-                        />
-                        {signatures.length > 0 && (
-                            <div className="mt-4 grid grid-cols-3 gap-2">
-                                {signatures.map((sig) => (
-                                    <EvidenceCard
-                                        key={sig.id}
-                                        id={sig.id}
-                                        url={sig.url}
-                                        jobId={job.id}
-                                        isPending={job.status === 'pending'}
-                                    />
-                                ))}
-                            </div>
-                        )}
-                    </div>
                 </div>
 
-                {job.status === 'pending' && (
-                    <div className="pt-4 border-t">
-                        <CompleteJobButton
-                            jobId={job.id}
-                            initialPhotoCount={photoCount}
-                            initialSignatureCount={signatureCount}
-                        />
-                    </div>
-                )}
+                {/* Add slight padding at bottom to avoid content being hidden by sticky button */}
+                <div className="h-24"></div>
             </div>
-        </div >
+
+            {/* Sticky Footer for Action Button */}
+            {job.status === 'pending' && (
+                <div className="fixed bottom-0 left-0 right-0 p-4 pb-24 bg-white/95 backdrop-blur border-t shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-40 max-w-md mx-auto">
+                    <CompleteJobButton
+                        jobId={job.id}
+                        initialPhotoCount={photoCount}
+                        initialSignatureCount={signatureCount}
+                    />
+                </div>
+            )}
+        </div>
     )
 }

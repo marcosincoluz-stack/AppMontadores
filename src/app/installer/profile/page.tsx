@@ -72,7 +72,9 @@ export default async function ProfilePage() {
                             <ShieldCheck className="h-4 w-4" />
                             <span>Rol</span>
                         </div>
-                        <span className="text-sm font-medium capitalize">{userData?.role || 'Instalador'}</span>
+                        <span className="text-sm font-medium capitalize">
+                            {userData?.role === 'installer' ? 'Montador' : (userData?.role || 'Montador')}
+                        </span>
                     </div>
                 </CardContent>
             </Card>

@@ -112,48 +112,37 @@ export function UploadEvidenceForm({
     }
 
     return (
-        <div className="space-y-2">
-            <h4 className="font-medium text-sm text-gray-700">{title}</h4>
-            <Card className={`border-dashed border-2 transition-colors ${isUploading ? 'bg-blue-50 border-blue-200' : 'bg-gray-50'}`}>
-                <CardContent className="pt-6 pb-6 flex flex-col items-center gap-4">
-                    {isUploading ? (
-                        <div className="text-center space-y-3 py-2">
-                            <div className="flex justify-center">
-                                <Loader2 className="h-8 w-8 text-blue-500 animate-spin" />
-                            </div>
-                            <p className="text-sm font-medium text-blue-700">Subiendo y optimizando...</p>
-                        </div>
-                    ) : (
-                        <div className="text-center space-y-2 w-full">
-                            <div className="flex justify-center">
-                                <div className="p-4 bg-blue-100 rounded-full text-blue-600">
-                                    <CloudUpload className="h-8 w-8" />
+        <div className="w-full">
+            <Card className={`border-dashed border-2 hover:bg-slate-50 transition-colors cursor-pointer group relative overflow-hidden ${isUploading ? 'bg-blue-50 border-blue-200' : 'bg-gray-50/50 border-gray-200'}`}>
+                <CardContent className="p-0">
+                    <div className="relative h-24 flex flex-col items-center justify-center gap-2 p-2">
+                        {isUploading ? (
+                            <>
+                                <Loader2 className="h-6 w-6 text-blue-500 animate-spin" />
+                                <span className="text-[10px] text-blue-600 font-medium">Subiendo...</span>
+                            </>
+                        ) : (
+                            <>
+                                <div className="p-2 bg-blue-100/50 rounded-full text-blue-600 group-hover:scale-110 transition-transform">
+                                    <CloudUpload className="h-5 w-5" />
                                 </div>
-                            </div>
-                            <p className="text-sm text-gray-500">
-                                Pulsa para hacer foto o elegir de galería
-                            </p>
+                                <div className="flex flex-col items-center">
+                                    <span className="text-xs font-bold text-gray-700">Pulsa para añadir</span>
+                                    <span className="text-[10px] text-gray-500 leading-none">Pulsa aquí</span>
+                                </div>
+                            </>
+                        )}
 
-                            <div className="relative">
-                                <Label htmlFor={`upload-${evidenceType}`} className="absolute inset-0 cursor-pointer text-transparent">
-                                    {title}
-                                </Label>
-                                <Input
-                                    id={`upload-${evidenceType}`}
-                                    type="file"
-                                    accept="image/*"
-                                    capture="environment"
-                                    className="hidden"
-                                    onChange={handleFileSelect}
-                                    disabled={isUploading}
-                                />
-                                {/* Custom Button Overlay for better styling */}
-                                <Button variant="outline" className="w-full mt-2 pointer-events-none">
-                                    Seleccionar Archivo
-                                </Button>
-                            </div>
-                        </div>
-                    )}
+                        <Input
+                            id={`upload-${evidenceType}`}
+                            type="file"
+                            accept="image/*"
+                            capture="environment"
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                            onChange={handleFileSelect}
+                            disabled={isUploading}
+                        />
+                    </div>
                 </CardContent>
             </Card>
         </div>
