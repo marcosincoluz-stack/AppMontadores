@@ -41,11 +41,12 @@ export function UploadEvidenceForm({
     const handleUpload = async (fileToProcess: File) => {
         setIsUploading(true)
         try {
-            const { data: { user }, error: authError } = await supabase.auth.getUser()
-            if (authError || !user) {
+            // Use getSession() instead of getUser() - it auto-refreshes expired tokens
+            const { data: { session }, error: authError } = await supabase.auth.getSession()
+            if (authError || !session?.user) {
                 throw new Error('No estás autenticado. Por favor, inicia sesión de nuevo.')
             }
-            console.log('Auto-upload by user:', user.id, 'for job:', jobId)
+            console.log('Auto-upload by user:', session.user.id, 'for job:', jobId)
 
             // Compression options
             const options = {
