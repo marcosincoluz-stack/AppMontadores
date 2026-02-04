@@ -22,7 +22,8 @@ import { JobRowActions } from './job-row-actions'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { notifyInstallers } from './actions'
-import { MessageSquare, CheckSquare, Search, FilterX } from 'lucide-react'
+import { MessageSquare, CheckSquare, Search, FilterX, Loader2, CheckCircle, Clock } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
 
 interface JobsTableProps {
     jobs: any[]
@@ -233,17 +234,28 @@ export function JobsTable({ jobs, installers }: JobsTableProps) {
                                     {(job.users as any)?.full_name || 'Sin asignar'}
                                 </TableCell>
                                 <TableCell>
-                                    <span className={`px-2 py-1 rounded-full text-xs font-semibold
-                    ${job.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : ''}
-                    ${job.status === 'en_revision' ? 'bg-blue-100 text-blue-800' : ''}
-                    ${job.status === 'approved' ? 'bg-green-100 text-green-800' : ''}
-                    ${job.status === 'paid' ? 'bg-gray-100 text-gray-800' : ''}
-                   `}>
-                                        {job.status === 'pending' && 'Pendiente'}
-                                        {job.status === 'en_revision' && 'En Revisión'}
-                                        {job.status === 'approved' && 'Aprobado'}
-                                        {job.status === 'paid' && 'Pagado'}
-                                    </span>
+                                    <Badge variant="outline" className="text-muted-foreground gap-1.5 py-0.5 pr-2.5 pl-1.5 font-normal">
+                                        {job.status === 'approved' || job.status === 'paid' ? (
+                                            <CheckCircle className="h-3.5 w-3.5 fill-green-500 text-white" />
+                                        ) : (
+                                            job.status === 'en_revision' ? (
+                                                <Loader2 className="h-3.5 w-3.5 animate-spin text-blue-500" />
+                                            ) : (
+                                                <Loader2 className="h-3.5 w-3.5 text-amber-500" />
+                                            )
+                                        )}
+                                        <span className={
+                                            job.status === 'pending' ? 'text-amber-600' :
+                                                job.status === 'en_revision' ? 'text-blue-600' :
+                                                    job.status === 'approved' ? 'text-green-600' :
+                                                        job.status === 'paid' ? 'text-gray-600' : ''
+                                        }>
+                                            {job.status === 'pending' && 'Pendiente'}
+                                            {job.status === 'en_revision' && 'En Revisión'}
+                                            {job.status === 'approved' && 'Aprobado'}
+                                            {job.status === 'paid' && 'Pagado'}
+                                        </span>
+                                    </Badge>
                                 </TableCell>
                                 <TableCell className="text-right">
                                     {job.amount ? `${job.amount} €` : '-'}

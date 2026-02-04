@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
-import { MapPin, AlertCircle, ChevronRight, Clock, CheckCircle, Navigation } from 'lucide-react'
+import { MapPin, AlertCircle, ChevronRight, Clock, CheckCircle, Navigation, Loader2 } from 'lucide-react'
 import { IncidentStartupDialog } from '@/components/incident-startup-dialog'
 import { NotificationsBtn } from '@/components/notifications-btn'
 import type { Database } from '@/types/supabase'
@@ -145,16 +145,27 @@ export function InstallerJobsList({ initialJobs, rejectedCount }: { initialJobs:
                                                     Incidencia
                                                 </Badge>
                                             ) : (
-                                                <Badge variant="outline" className={`h-5 px-1.5 text-[10px] font-normal tracking-wide uppercase border-0
-                                                    ${job.status === 'pending' ? 'bg-amber-100 text-amber-700 hover:bg-amber-100' : ''}
-                                                    ${job.status === 'en_revision' ? 'bg-blue-100 text-blue-700 hover:bg-blue-100' : ''}
-                                                    ${job.status === 'approved' ? 'bg-green-100 text-green-700 hover:bg-green-100' : ''}
-                                                    ${job.status === 'paid' ? 'bg-zinc-100 text-zinc-700 hover:bg-zinc-100' : ''}
-                                                `}>
-                                                    {job.status === 'pending' && 'Pendiente'}
-                                                    {job.status === 'en_revision' && 'Revisión'}
-                                                    {job.status === 'approved' && 'Aprobado'}
-                                                    {job.status === 'paid' && 'Pagado'}
+                                                <Badge variant="outline" className="text-muted-foreground gap-1.5 py-0.5 pr-2.5 pl-1.5 font-normal border">
+                                                    {job.status === 'approved' || job.status === 'paid' ? (
+                                                        <CheckCircle className="h-3 w-3 fill-green-500 text-white" />
+                                                    ) : (
+                                                        job.status === 'en_revision' ? (
+                                                            <Loader2 className="h-3 w-3 animate-spin text-blue-500" />
+                                                        ) : (
+                                                            <Loader2 className="h-3 w-3 text-amber-500" />
+                                                        )
+                                                    )}
+                                                    <span className={
+                                                        job.status === 'pending' ? 'text-amber-600' :
+                                                            job.status === 'en_revision' ? 'text-blue-600' :
+                                                                job.status === 'approved' ? 'text-green-600' :
+                                                                    job.status === 'paid' ? 'text-gray-600' : ''
+                                                    }>
+                                                        {job.status === 'pending' && 'Pendiente'}
+                                                        {job.status === 'en_revision' && 'Revisión'}
+                                                        {job.status === 'approved' && 'Aprobado'}
+                                                        {job.status === 'paid' && 'Pagado'}
+                                                    </span>
                                                 </Badge>
                                             )}
                                         </div>
