@@ -42,29 +42,49 @@ export function usePushNotifications() {
         if (!isSupported) return false
 
         try {
+            console.log('[Push] Starting subscription...')
+
             // Register service worker if not already
+            console.log('[Push] Registering service worker...')
             const registration = await navigator.serviceWorker.register('/sw.js')
             await navigator.serviceWorker.ready
+            console.log('[Push] Service worker ready')
 
             // Request permission
+            console.log('[Push] Requesting permission...')
             const permission = await Notification.requestPermission()
+            console.log('[Push] Permission:', permission)
             if (permission !== 'granted') {
-                console.log('Notification permission denied')
+                console.log('[Push] Permission denied')
+                return false
+            }
+
+            // Check VAPID key
+            const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
+            console.log('[Push] VAPID key present:', !!vapidKey, vapidKey?.substring(0, 10) + '...')
+            if (!vapidKey) {
+                console.error('[Push] VAPID key missing!')
                 return false
             }
 
             // Subscribe to push
+            console.log('[Push] Subscribing to push manager...')
             const subscription = await registration.pushManager.subscribe({
                 userVisibleOnly: true,
-                applicationServerKey: urlBase64ToUint8Array(
-                    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!
-                )
+                applicationServerKey: urlBase64ToUint8Array(vapidKey)
             })
+            console.log('[Push] Subscription created:', subscription.endpoint.substring(0, 50) + '...')
 
             // Save to database
+            console.log('[Push] Getting user...')
             const { data: { user } } = await supabase.auth.getUser()
-            if (!user) return false
+            if (!user) {
+                console.error('[Push] No user found')
+                return false
+            }
+            console.log('[Push] User ID:', user.id)
 
+            console.log('[Push] Saving to database...')
             const { error } = await supabase
                 .from('push_subscriptions')
                 .upsert({
@@ -76,14 +96,15 @@ export function usePushNotifications() {
                 })
 
             if (error) {
-                console.error('Error saving subscription:', error)
+                console.error('[Push] Database error:', error)
                 return false
             }
 
+            console.log('[Push] Success!')
             setIsSubscribed(true)
             return true
         } catch (e) {
-            console.error('Subscribe error:', e)
+            console.error('[Push] Subscribe error:', e)
             return false
         }
     }
