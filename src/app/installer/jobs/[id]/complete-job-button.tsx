@@ -81,14 +81,12 @@ export function CompleteJobButton({ jobId, initialPhotoCount = 0, initialSignatu
         if (!canComplete) return
 
         startTransition(async () => {
-            const { error } = await supabase
-                .from('jobs')
-                .update({ status: 'en_revision', rejection_reason: null })
-                .eq('id', jobId)
+            // Server Action Call
+            const { completeJob } = await import('../actions')
+            const result = await completeJob(jobId)
 
-            if (error) {
-                toast.error('Error al finalizar el trabajo')
-                console.error(error)
+            if (result.error) {
+                toast.error(result.error)
             } else {
                 toast.success('Trabajo enviado para revisión')
                 router.push('/installer')

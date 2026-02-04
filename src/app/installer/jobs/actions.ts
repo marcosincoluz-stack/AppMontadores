@@ -52,3 +52,50 @@ export async function deleteEvidence(evidenceId: string, evidenceUrl: string, jo
         return { error: error.message }
     }
 }
+
+import { createNotification } from '@/lib/notifications'
+
+export async function completeJob(jobId: string) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+        return { error: 'No autorizado' }
+    }
+
+    // 1. Update Job Status
+    const { data: job, error: updateError } = await supabase
+        .from('jobs')
+        .update({ status: 'en_revision', rejection_reason: null })
+        .eq('id', jobId)
+        .select()
+        .single()
+
+    if (updateError) {
+        console.error('Error updating job:', updateError)
+        return { error: 'Error al finalizar el trabajo' }
+    }
+
+    // 2. Notify Admins
+    // Fetch all admin users
+    const { data: admins } = await supabase
+        .from('users')
+        .select('id')
+        .eq('role', 'admin')
+
+    if (admins && admins.length > 0) {
+        await Promise.all(admins.map(admin =>
+            createNotification({
+                userId: admin.id,
+                title: 'Trabajo Completado',
+                message: `El instalador ha finalizado el trabajo: ${job.title}`,
+                type: 'success',
+                metadata: { jobId: job.id, link: `/admin/jobs` }
+            })
+        ))
+    }
+
+    revalidatePath('/installer')
+    revalidatePath(`/installer/jobs/${jobId}`)
+    return { success: true }
+}
