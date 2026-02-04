@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createNotification } from '@/lib/notifications'
 import { geocodeAddress } from '@/lib/geocoding'
+import { sendPushNotification } from '@/lib/push'
 
 export async function createJob(formData: FormData) {
     const supabase = await createClient()
@@ -55,6 +56,13 @@ export async function createJob(formData: FormData) {
             type: 'info',
             metadata: { jobId: job.id }
         })
+        // Send Push Notification
+        await sendPushNotification(
+            assignedTo,
+            'Nuevo trabajo asignado',
+            `${title} en ${clientName}`,
+            `/installer/jobs/${job.id}`
+        )
     }
 
     revalidatePath('/admin/jobs')
@@ -136,6 +144,13 @@ export async function notifyInstallers(jobIds: string[]) {
                 type: 'warning',
                 metadata: { jobId: job.id }
             })
+            // Send Push Notification
+            await sendPushNotification(
+                job.assigned_to,
+                'Recordatorio de trabajo',
+                `Trabajo pendiente: ${job.title}`,
+                `/installer/jobs/${job.id}`
+            )
             count++
         }
     }))

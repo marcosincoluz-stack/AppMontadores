@@ -3,9 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Separator } from '@/components/ui/separator'
-import { LogOut, User, Mail, ShieldCheck, Briefcase } from 'lucide-react'
+import { LogOut, User, Mail, ShieldCheck, Briefcase, Bell } from 'lucide-react'
 import { signOut } from '@/app/login/actions'
 import { redirect } from 'next/navigation'
+import { PushNotificationToggle } from '@/components/push-notification-toggle'
 
 export default async function ProfilePage() {
     const supabase = await createClient()
@@ -97,6 +98,19 @@ export default async function ProfilePage() {
                             <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">Aprobados</p>
                         </div>
                     </div>
+                </CardContent>
+            </Card>
+
+            <Card className="shadow-sm">
+                <CardHeader className="pb-4">
+                    <CardTitle className="text-base flex items-center gap-2">
+                        <Bell className="h-4 w-4 text-muted-foreground" />
+                        Notificaciones
+                    </CardTitle>
+                    <CardDescription>Recibe alertas en tu móvil</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <PushNotificationToggle />
                 </CardContent>
             </Card>
 
