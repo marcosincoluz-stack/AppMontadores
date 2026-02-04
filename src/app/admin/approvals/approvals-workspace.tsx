@@ -49,9 +49,9 @@ export function ApprovalsWorkspace({ initialJobs }: ApprovalsWorkspaceProps) {
     return (
         <ResizablePanelGroup
             orientation="horizontal"
-            className="h-[calc(100vh-12rem)] max-h-[800px] items-stretch rounded-md border"
+            className="h-full items-stretch rounded-md border"
         >
-            <ResizablePanel defaultSize={30} minSize={25} maxSize={40} className="flex flex-col">
+            <ResizablePanel defaultSize={30} minSize={25} maxSize={40} className="flex flex-col min-w-[300px]">
                 <div className="flex items-center px-4 py-2 border-b bg-muted/30 h-[52px]">
                     <h1 className="text-xl font-bold">Revisiones ({jobs.length})</h1>
                 </div>

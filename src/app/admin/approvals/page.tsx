@@ -15,11 +15,7 @@ export default async function ApprovalsPage() {
         .order('created_at', { ascending: false })
 
     return (
-        <div className="h-[calc(100vh-6rem)] flex flex-col">
-            <div className="flex items-center justify-between mb-4">
-                <h2 className="text-3xl font-bold tracking-tight">Revisiones Pendientes</h2>
-            </div>
-
+        <div className="flex-1 h-full p-6">
             <ApprovalsWorkspace initialJobs={jobs || []} />
         </div>
     )
