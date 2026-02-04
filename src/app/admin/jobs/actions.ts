@@ -3,6 +3,7 @@
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { createNotification } from '@/lib/notifications'
 
 export async function createJob(formData: FormData) {
     const supabase = await createClient()
@@ -19,7 +20,7 @@ export async function createJob(formData: FormData) {
     const amountStr = formData.get('amount') as string
     const amount = amountStr ? parseFloat(amountStr) : null
 
-    const { error } = await supabase
+    const { data: job, error } = await supabase
         .from('jobs')
         .insert({
             title,
@@ -30,10 +31,23 @@ export async function createJob(formData: FormData) {
             amount,
             status: 'pending'
         })
+        .select()
+        .single()
 
     if (error) {
         console.error('Error creating job:', error)
         return { error: error.message }
+    }
+
+    // Notify assigned installer
+    if (assignedTo && job) {
+        await createNotification({
+            userId: assignedTo,
+            title: 'Nuevo trabajo asignado',
+            message: `Se te ha asignado el trabajo: ${title} en ${clientName}`,
+            type: 'info',
+            metadata: { jobId: job.id }
+        })
     }
 
     revalidatePath('/admin/jobs')
@@ -90,13 +104,34 @@ export async function deleteJob(jobId: string) {
 }
 
 export async function notifyInstallers(jobIds: string[]) {
-    // Stub implementation for verify admin
-    // In real implementation we would check auth here again
+    if (!jobIds.length) return { success: false }
 
-    console.log('Notifying installers for jobs:', jobIds)
+    const supabase = await createClient()
 
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    // Fetch jobs to get assigned users
+    const { data: jobs } = await supabase
+        .from('jobs')
+        .select('id, title, assigned_to')
+        .in('id', jobIds)
+        .not('assigned_to', 'is', null)
 
-    return { success: true, count: jobIds.length }
+    if (!jobs || jobs.length === 0) return { success: true, count: 0 }
+
+    let count = 0
+
+    // Create notifications for each job
+    await Promise.all(jobs.map(async (job) => {
+        if (job.assigned_to) {
+            await createNotification({
+                userId: job.assigned_to,
+                title: 'Recordatorio de trabajo',
+                message: `Recordatorio sobre el trabajo pendiente: ${job.title}`,
+                type: 'warning',
+                metadata: { jobId: job.id }
+            })
+            count++
+        }
+    }))
+
+    return { success: true, count }
 }
