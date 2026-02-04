@@ -21,10 +21,6 @@ export async function login(prevState: any, formData: FormData) {
         return { error: 'Formato de email inválido' }
     }
 
-    if (password.length < 6) {
-        return { error: 'La contraseña debe tener al menos 6 caracteres' }
-    }
-
     const { error, data } = await supabase.auth.signInWithPassword({
         email,
         password,
