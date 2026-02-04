@@ -41,10 +41,22 @@ export function UploadEvidenceForm({
     const handleUpload = async (fileToProcess: File) => {
         setIsUploading(true)
         try {
-            // Use getSession() instead of getUser() - it auto-refreshes expired tokens
-            const { data: { session }, error: authError } = await supabase.auth.getSession()
+            // Try to get session, with fallback to explicit refresh
+            let { data: { session }, error: authError } = await supabase.auth.getSession()
+
+            // If no session, try to refresh it explicitly
+            if (!session) {
+                console.log('No session found, attempting explicit refresh...')
+                const refreshResult = await supabase.auth.refreshSession()
+                session = refreshResult.data.session
+                authError = refreshResult.error
+            }
+
             if (authError || !session?.user) {
-                throw new Error('No estás autenticado. Por favor, inicia sesión de nuevo.')
+                // Redirect to login if no valid session
+                toast.error('Sesión expirada. Redirigiendo al login...')
+                router.push('/login')
+                return
             }
             console.log('Auto-upload by user:', session.user.id, 'for job:', jobId)
 
