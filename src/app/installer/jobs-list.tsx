@@ -59,35 +59,36 @@ export function InstallerJobsList({ initialJobs, rejectedCount }: { initialJobs:
         }
 
         const sorted = [...initialJobs].sort((a, b) => {
-            // Priority 1: Distance (if job has coords)
+            // Priority 0: Status (PENDING is always first)
+            const aIsPending = a.status === 'pending'
+            const bIsPending = b.status === 'pending'
+
+            if (aIsPending && !bIsPending) return -1
+            if (!aIsPending && bIsPending) return 1
+
+            // Calculate distances
             let distA = Infinity
             let distB = Infinity
 
             if (a.lat && a.lng) distA = calculateDistance(userLocation.lat, userLocation.lng, a.lat, a.lng)
             if (b.lat && b.lng) distB = calculateDistance(userLocation.lat, userLocation.lng, b.lat, b.lng)
 
-            // If close enough (< 500m), prioritize heavily
-            const aIsClose = distA < 500
-            const bIsClose = distB < 500
+            // If both are PENDING
+            if (aIsPending && bIsPending) {
+                // Priority 1: Rejected/Incidents (Most urgent)
+                const aRejected = a.rejection_reason
+                const bRejected = b.rejection_reason
+                if (aRejected && !bRejected) return -1
+                if (!aRejected && bRejected) return 1
 
-            if (aIsClose && !bIsClose) return -1
-            if (!aIsClose && bIsClose) return 1
-
-            // If both close, sort by distance
-            if (aIsClose && bIsClose) return distA - distB
-
-            // Priority 2: Status (Incidents/Pending) - Keep existing logic
-            const aRejected = a.status === 'pending' && a.rejection_reason
-            const bRejected = b.status === 'pending' && b.rejection_reason
-            if (aRejected && !bRejected) return -1
-            if (!aRejected && bRejected) return 1
-
-            // Priority 3: Distance (General sorting)
-            if (distA !== Infinity && distB !== Infinity) {
-                return distA - distB
+                // Priority 2: Distance
+                if (distA !== Infinity && distB !== Infinity) return distA - distB
+                if (distA !== Infinity) return -1
+                if (distB !== Infinity) return 1
             }
 
-            // Fallback: Date
+            // If both are NON-PENDING (or fallback for pending without location/rejection diff)
+            // Sort by Date (newest first)
             return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         })
 
