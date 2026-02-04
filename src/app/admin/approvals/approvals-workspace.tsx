@@ -51,15 +51,17 @@ export function ApprovalsWorkspace({ initialJobs }: ApprovalsWorkspaceProps) {
             orientation="horizontal"
             className="h-full items-stretch rounded-md border"
         >
-            <ResizablePanel defaultSize={30} minSize={25} maxSize={40} className="flex flex-col min-w-[300px]">
-                <div className="flex items-center px-4 py-2 border-b bg-muted/30 h-[52px]">
+            <ResizablePanel defaultSize={30} minSize={20} maxSize={45} className="flex flex-col">
+                <div className="flex items-center px-4 py-2 border-b bg-muted/30 h-[52px] shrink-0">
                     <h1 className="text-xl font-bold">Revisiones ({jobs.length})</h1>
                 </div>
-                <ApprovalJobList
-                    jobs={jobs}
-                    selectedJobId={selectedJobId}
-                    onSelect={setSelectedJobId}
-                />
+                <div className="flex-1 overflow-hidden">
+                    <ApprovalJobList
+                        jobs={jobs}
+                        selectedJobId={selectedJobId}
+                        onSelect={setSelectedJobId}
+                    />
+                </div>
             </ResizablePanel>
 
             <ResizableHandle withHandle />

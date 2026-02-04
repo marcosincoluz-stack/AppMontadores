@@ -98,36 +98,38 @@ export function ApprovalDetailView({ job, onProcessed }: ApprovalDetailViewProps
             </div>
 
             {/* Evidence Grid (Scrollable) */}
-            <ScrollArea className="flex-1 bg-muted/10 p-6">
-                {job.evidence.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-[300px] text-muted-foreground border-2 border-dashed rounded-lg bg-background m-6">
-                        <AlertCircle className="w-10 h-10 mb-3 opacity-20" />
-                        <p className="font-medium">No hay evidencias subidas</p>
-                    </div>
-                ) : (
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 pb-20">
-                        {job.evidence.map((item: any) => (
-                            <div key={item.id} className="group relative break-inside-avoid overflow-hidden rounded-lg border bg-background shadow-sm transition-all hover:shadow-md">
-                                <div className="aspect-square relative cursor-zoom-in" onClick={() => setPreviewImage(item.url)}>
-                                    <img
-                                        src={item.url}
-                                        alt="Evidencia"
-                                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                                        loading="lazy"
-                                    />
-                                    <div className="absolute inset-0 bg-black/0 transition-colors group-hover:bg-black/10 flex items-center justify-center opacity-0 group-hover:opacity-100">
-                                        <Maximize2 className="w-6 h-6 text-white drop-shadow-md" />
-                                    </div>
-                                    <div className="absolute top-2 right-2">
-                                        <Badge className={item.type === 'signature' ? 'bg-purple-500/90 hover:bg-purple-600/90' : 'bg-blue-500/90 hover:bg-blue-600/90'} variant="secondary">
-                                            {item.type === 'signature' ? 'Acta' : 'Foto'}
-                                        </Badge>
+            <ScrollArea className="flex-1">
+                <div className="p-6 bg-muted/10">
+                    {job.evidence.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center h-[300px] text-muted-foreground border-2 border-dashed rounded-lg bg-background">
+                            <AlertCircle className="w-10 h-10 mb-3 opacity-20" />
+                            <p className="font-medium">No hay evidencias subidas</p>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 pb-24">
+                            {job.evidence.map((item: any) => (
+                                <div key={item.id} className="group relative break-inside-avoid overflow-hidden rounded-lg border bg-background shadow-sm transition-all hover:shadow-md">
+                                    <div className="aspect-square relative cursor-zoom-in" onClick={() => setPreviewImage(item.url)}>
+                                        <img
+                                            src={item.url}
+                                            alt="Evidencia"
+                                            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                            loading="lazy"
+                                        />
+                                        <div className="absolute inset-0 bg-black/0 transition-colors group-hover:bg-black/10 flex items-center justify-center opacity-0 group-hover:opacity-100">
+                                            <Maximize2 className="w-6 h-6 text-white drop-shadow-md" />
+                                        </div>
+                                        <div className="absolute top-2 right-2">
+                                            <Badge className={item.type === 'signature' ? 'bg-purple-500/90 hover:bg-purple-600/90' : 'bg-blue-500/90 hover:bg-blue-600/90'} variant="secondary">
+                                                {item.type === 'signature' ? 'Acta' : 'Foto'}
+                                            </Badge>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        ))}
-                    </div>
-                )}
+                            ))}
+                        </div>
+                    )}
+                </div>
             </ScrollArea>
 
             {/* Footer Actions (Sticky) */}
