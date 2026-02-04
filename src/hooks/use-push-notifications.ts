@@ -21,6 +21,14 @@ export function usePushNotifications() {
 
     async function checkSubscription() {
         try {
+            // Check if service worker is controlling this page
+            if (!navigator.serviceWorker.controller) {
+                // No SW active yet, not subscribed
+                setIsSubscribed(false)
+                setIsLoading(false)
+                return
+            }
+
             const registration = await navigator.serviceWorker.ready
             const subscription = await registration.pushManager.getSubscription()
             setIsSubscribed(!!subscription)
