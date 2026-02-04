@@ -20,6 +20,8 @@ import {
     SidebarMenuItem,
     SidebarRail,
 } from "@/components/ui/sidebar"
+import { NavUser } from "@/components/nav-user"
+
 
 // This is sample data.
 const data = {
@@ -120,12 +122,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 </SidebarMenu>
             </SidebarContent>
             <SidebarFooter>
-                {/* User menu placeholder */}
-                <div className="p-2 text-xs text-gray-500 text-center">
-                    Admin User
-                </div>
+                <NavUser user={data.user} />
             </SidebarFooter>
             <SidebarRail />
         </Sidebar>
     )
 }
+
