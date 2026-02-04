@@ -56,13 +56,17 @@ export async function createJob(formData: FormData) {
             type: 'info',
             metadata: { jobId: job.id }
         })
-        // Send Push Notification
-        await sendPushNotification(
-            assignedTo,
-            'Nuevo trabajo asignado',
-            `${title} en ${clientName}`,
-            `/installer/jobs/${job.id}`
-        )
+        // Send Push Notification (non-blocking)
+        try {
+            await sendPushNotification(
+                assignedTo,
+                'Nuevo trabajo asignado',
+                `${title} en ${clientName}`,
+                `/installer/jobs/${job.id}`
+            )
+        } catch (e) {
+            console.error('Push notification failed:', e)
+        }
     }
 
     revalidatePath('/admin/jobs')
@@ -144,13 +148,17 @@ export async function notifyInstallers(jobIds: string[]) {
                 type: 'warning',
                 metadata: { jobId: job.id }
             })
-            // Send Push Notification
-            await sendPushNotification(
-                job.assigned_to,
-                'Recordatorio de trabajo',
-                `Trabajo pendiente: ${job.title}`,
-                `/installer/jobs/${job.id}`
-            )
+            // Send Push Notification (non-blocking, errors logged)
+            try {
+                await sendPushNotification(
+                    job.assigned_to,
+                    'Recordatorio de trabajo',
+                    `Trabajo pendiente: ${job.title}`,
+                    `/installer/jobs/${job.id}`
+                )
+            } catch (e) {
+                console.error('Push notification failed:', e)
+            }
             count++
         }
     }))
