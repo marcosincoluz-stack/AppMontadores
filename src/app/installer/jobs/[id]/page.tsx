@@ -65,7 +65,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 
             <div className="bg-white rounded-lg shadow-sm border p-3 space-y-2">
                 <div className="flex justify-between items-start gap-2">
-                    <h1 className="text-lg font-bold leading-tight line-clamp-2">{job.title}</h1>
+                    <h1 className="text-xl font-bold leading-tight line-clamp-2">{job.title}</h1>
                     <Badge variant="outline" className={`text-[10px] h-5 font-normal tracking-wide uppercase border-0 shrink-0
                         ${job.status === 'pending' ? 'bg-amber-100 text-amber-700 hover:bg-amber-100' : ''}
                         ${job.status === 'en_revision' ? 'bg-blue-100 text-blue-700 hover:bg-blue-100' : ''}
@@ -79,17 +79,17 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
                     </Badge>
                 </div>
 
-                <div className="grid grid-cols-[auto_1fr] gap-x-2 gap-y-0.5 text-sm">
-                    <span className="text-muted-foreground font-medium text-xs uppercase self-baseline pt-0.5">Cliente:</span>
+                <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-base">
+                    <span className="text-muted-foreground font-medium text-xs uppercase self-baseline pt-1">Cliente:</span>
                     <span className="font-medium truncate">{job.client_name}</span>
 
-                    <span className="text-muted-foreground font-medium text-xs uppercase self-baseline pt-0.5">Dirección:</span>
-                    <span className="text-muted-foreground leading-tight">{job.address}</span>
+                    <span className="text-muted-foreground font-medium text-xs uppercase self-baseline pt-1">Dirección:</span>
+                    <span className="text-muted-foreground leading-snug">{job.address}</span>
                 </div>
 
                 {job.description && (
-                    <div className="pt-2 mt-1 border-t text-xs text-muted-foreground">
-                        <p className="line-clamp-2">{job.description}</p>
+                    <div className="pt-3 mt-2 border-t text-sm text-muted-foreground">
+                        <p className="">{job.description}</p>
                     </div>
                 )}
             </div>

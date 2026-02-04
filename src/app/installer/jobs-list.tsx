@@ -136,7 +136,7 @@ export function InstallerJobsList({ initialJobs, rejectedCount }: { initialJobs:
                                 <div className="p-4 flex items-center justify-between gap-4">
                                     <div className="flex-1 min-w-0 space-y-1.5">
                                         <div className="flex items-center gap-2">
-                                            <h3 className="font-medium text-sm truncate leading-none">
+                                            <h3 className="font-semibold text-base truncate leading-tight">
                                                 {job.title}
                                             </h3>
 
@@ -170,12 +170,12 @@ export function InstallerJobsList({ initialJobs, rejectedCount }: { initialJobs:
                                             )}
                                         </div>
 
-                                        <p className="text-xs text-muted-foreground truncate">
+                                        <p className="text-sm text-muted-foreground truncate">
                                             {job.client_name}
                                         </p>
 
-                                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                                            <MapPin className="h-3.5 w-3.5" />
+                                        <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                                            <MapPin className="h-4 w-4" />
                                             <span className="truncate">{job.address}</span>
                                         </div>
 
@@ -199,7 +199,7 @@ export function InstallerJobsList({ initialJobs, rejectedCount }: { initialJobs:
                                             ) : (
                                                 <Clock className="h-3.5 w-3.5" />
                                             )}
-                                            <span>
+                                            <span className="text-sm font-semibold">
                                                 {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(job.amount || 0)}
                                             </span>
                                         </div>
