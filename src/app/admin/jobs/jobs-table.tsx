@@ -8,22 +8,69 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table'
-import { Checkbox } from '@/components/ui/checkbox' // We'll assume this exists or use native for now if it doesn't
+import { Checkbox } from '@/components/ui/checkbox'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select'
 import { JobRowActions } from './job-row-actions'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { notifyInstallers } from './actions'
-import { MessageSquare, CheckSquare } from 'lucide-react'
+import { MessageSquare, CheckSquare, Search, FilterX } from 'lucide-react'
 
 interface JobsTableProps {
     jobs: any[]
+    installers: { id: string, full_name: string }[]
 }
 
-export function JobsTable({ jobs }: JobsTableProps) {
+export function JobsTable({ jobs, installers }: JobsTableProps) {
     const [selectedJobIds, setSelectedJobIds] = useState<Set<string>>(new Set())
     const [isNotifying, setIsNotifying] = useState(false)
+
+    // Filter States
+    const [searchTerm, setSearchTerm] = useState('')
+    const [statusFilter, setStatusFilter] = useState<string>('all')
+    const [installerFilter, setInstallerFilter] = useState<string>('all')
+
+    // Filter Logic
+    const filteredJobs = jobs.filter(job => {
+        // Text Search
+        const searchLower = searchTerm.toLowerCase()
+        const matchesSearch =
+            job.title?.toLowerCase().includes(searchLower) ||
+            job.client_name?.toLowerCase().includes(searchLower) ||
+            job.address?.toLowerCase().includes(searchLower)
+
+        if (!matchesSearch) return false
+
+        // Status Filter
+        if (statusFilter !== 'all' && job.status !== statusFilter) return false
+
+        // Installer Filter
+        if (installerFilter !== 'all') {
+            const assignedId = job.assigned_to
+            if (installerFilter === 'unassigned') {
+                if (assignedId) return false
+            } else {
+                if (assignedId !== installerFilter) return false
+            }
+        }
+
+        return true
+    })
+
+    // Reset Filters
+    const clearFilters = () => {
+        setSearchTerm('')
+        setStatusFilter('all')
+        setInstallerFilter('all')
+    }
 
     // Helper to toggle a single job
     const toggleJob = (jobId: string) => {
@@ -36,20 +83,20 @@ export function JobsTable({ jobs }: JobsTableProps) {
         setSelectedJobIds(newSelected)
     }
 
-    // Toggle all visible jobs
+    // Toggle all visible jobs (filtered)
     const toggleAll = () => {
-        if (selectedJobIds.size === jobs.length) {
+        if (selectedJobIds.size === filteredJobs.length && filteredJobs.length > 0) {
             setSelectedJobIds(new Set())
         } else {
-            setSelectedJobIds(new Set(jobs.map(j => j.id)))
+            setSelectedJobIds(new Set(filteredJobs.map(j => j.id)))
         }
     }
 
     // Select all pending jobs
     const selectAllPending = () => {
-        const pendingJobs = jobs.filter(j => j.status === 'pending').map(j => j.id)
+        const pendingJobs = filteredJobs.filter(j => j.status === 'pending').map(j => j.id)
         if (pendingJobs.length === 0) {
-            toast.info('No hay trabajos pendientes para seleccionar')
+            toast.info('No hay trabajos pendientes en la vista actual')
             return
         }
         setSelectedJobIds(new Set(pendingJobs))
@@ -74,41 +121,77 @@ export function JobsTable({ jobs }: JobsTableProps) {
     }
 
     const hasSelection = selectedJobIds.size > 0
-    const allSelected = jobs.length > 0 && selectedJobIds.size === jobs.length
+    const allSelected = filteredJobs.length > 0 && selectedJobIds.size === filteredJobs.length
 
     return (
         <div className="space-y-4">
-            {/* Toolbar for selections */}
-            <div className="flex items-center justify-between p-2 bg-muted/50 rounded-lg min-h-[3rem] transition-all">
-                <div className="flex items-center gap-2">
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={selectAllPending}
-                        className="text-xs h-8"
-                    >
-                        <CheckSquare className="w-3.5 h-3.5 mr-2" />
-                        Seleccionar todos los Pendientes
-                    </Button>
-                    {hasSelection && (
+            {/* Toolbar for filters */}
+            <div className="flex flex-col md:flex-row gap-4 p-4 bg-white rounded-lg border shadow-sm">
+                <div className="flex-1 relative">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                        placeholder="Buscar por título, cliente, dirección..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-9"
+                    />
+                </div>
+                <div className="flex gap-2 w-full md:w-auto">
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                        <SelectTrigger className="w-[180px]">
+                            <SelectValue placeholder="Estado" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">Todos los estados</SelectItem>
+                            <SelectItem value="pending">Pendiente</SelectItem>
+                            <SelectItem value="en_revision">En Revisión</SelectItem>
+                            <SelectItem value="approved">Aprobado</SelectItem>
+                            <SelectItem value="paid">Pagado</SelectItem>
+                        </SelectContent>
+                    </Select>
+
+                    <Select value={installerFilter} onValueChange={setInstallerFilter}>
+                        <SelectTrigger className="w-[180px]">
+                            <SelectValue placeholder="Montador" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">Todos los montadores</SelectItem>
+                            <SelectItem value="unassigned">Sin asignar</SelectItem>
+                            {installers.map(installer => (
+                                <SelectItem key={installer.id} value={installer.id}>
+                                    {installer.full_name}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+
+                    {(searchTerm || statusFilter !== 'all' || installerFilter !== 'all') && (
+                        <Button variant="ghost" size="icon" onClick={clearFilters} title="Limpiar filtros">
+                            <FilterX className="h-4 w-4" />
+                        </Button>
+                    )}
+                </div>
+            </div>
+
+            {/* Selection Toolbar */}
+            {hasSelection && (
+                <div className="flex items-center justify-between p-2 bg-muted/50 rounded-lg min-h-[3rem] animate-in fade-in slide-in-from-top-2">
+                    <div className="flex items-center gap-2">
                         <span className="text-sm font-medium text-muted-foreground ml-2">
                             {selectedJobIds.size} seleccionados
                         </span>
-                    )}
-                </div>
+                    </div>
 
-                {hasSelection && (
                     <Button
                         size="sm"
                         onClick={handleBulkNotify}
                         disabled={isNotifying}
-                        className="animate-in fade-in slide-in-from-right-5"
                     >
                         <MessageSquare className="w-4 h-4 mr-2" />
-                        {isNotifying ? 'Enviando...' : 'Enviar Notificación (WhatsApp)'}
+                        {isNotifying ? 'Enviando...' : 'Enviar Notificación'}
                     </Button>
-                )}
-            </div>
+                </div>
+            )}
 
             <div className="border rounded-md bg-white">
                 <Table>
@@ -131,7 +214,7 @@ export function JobsTable({ jobs }: JobsTableProps) {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {jobs?.map((job) => (
+                        {filteredJobs?.map((job) => (
                             <TableRow
                                 key={job.id}
                                 className={selectedJobIds.has(job.id) ? "bg-muted/50" : ""}
@@ -170,10 +253,10 @@ export function JobsTable({ jobs }: JobsTableProps) {
                                 </TableCell>
                             </TableRow>
                         ))}
-                        {(!jobs || jobs.length === 0) && (
+                        {(!filteredJobs || filteredJobs.length === 0) && (
                             <TableRow>
                                 <TableCell colSpan={8} className="text-center py-10 text-gray-500">
-                                    No hay trabajos registrados.
+                                    {jobs.length > 0 ? 'No hay resultados para tu búsqueda.' : 'No hay trabajos registrados.'}
                                 </TableCell>
                             </TableRow>
                         )}

@@ -38,7 +38,7 @@ export default async function AdminJobsPage() {
             </div>
 
             <div className="border rounded-md bg-white">
-                <JobsTable jobs={jobs || []} />
+                <JobsTable jobs={jobs || []} installers={installers || []} />
             </div>
         </div>
     )
