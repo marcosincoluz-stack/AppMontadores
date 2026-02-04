@@ -1,5 +1,5 @@
 import { createClient } from '@/utils/supabase/server'
-import { JobApprovalCard } from './job-approval-card'
+import { ApprovalsWorkspace } from './approvals-workspace'
 
 export default async function ApprovalsPage() {
     const supabase = await createClient()
@@ -15,20 +15,12 @@ export default async function ApprovalsPage() {
         .order('created_at', { ascending: false })
 
     return (
-        <div className="space-y-6">
-            <h2 className="text-3xl font-bold tracking-tight">Revisiones Pendientes</h2>
-
-            {(!jobs || jobs.length === 0) && (
-                <div className="text-center py-20 text-gray-500 bg-white rounded shadow">
-                    <p>No hay trabajos pendientes de revisión.</p>
-                </div>
-            )}
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {jobs?.map((job) => (
-                    <JobApprovalCard key={job.id} job={job as any} />
-                ))}
+        <div className="h-[calc(100vh-6rem)] flex flex-col">
+            <div className="flex items-center justify-between mb-4">
+                <h2 className="text-3xl font-bold tracking-tight">Revisiones Pendientes</h2>
             </div>
+
+            <ApprovalsWorkspace initialJobs={jobs || []} />
         </div>
     )
 }

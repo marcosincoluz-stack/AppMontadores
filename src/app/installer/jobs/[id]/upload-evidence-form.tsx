@@ -137,7 +137,6 @@ export function UploadEvidenceForm({
                             id={`upload-${evidenceType}`}
                             type="file"
                             accept="image/*"
-                            capture="environment"
                             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                             onChange={handleFileSelect}
                             disabled={isUploading}

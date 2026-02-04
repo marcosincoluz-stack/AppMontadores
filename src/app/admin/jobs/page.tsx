@@ -8,8 +8,7 @@ import {
     TableRow,
 } from '@/components/ui/table'
 import { CreateJobDialog } from './create-job-dialog'
-import { JobRowActions } from './job-row-actions'
-import { Badge } from '@/components/ui/badge' // Need to add badge component? Or just style it manually.
+import { JobsTable } from './jobs-table'
 
 export default async function AdminJobsPage() {
     const supabase = await createClient()
@@ -39,57 +38,7 @@ export default async function AdminJobsPage() {
             </div>
 
             <div className="border rounded-md bg-white">
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Título</TableHead>
-                            <TableHead>Cliente</TableHead>
-                            <TableHead>Dirección</TableHead>
-                            <TableHead>Asignado a</TableHead>
-                            <TableHead>Estado</TableHead>
-                            <TableHead className="text-right">Monto</TableHead>
-                            <TableHead className="w-[50px]"></TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {jobs?.map((job) => (
-                            <TableRow key={job.id}>
-                                <TableCell className="font-medium">{job.title}</TableCell>
-                                <TableCell>{job.client_name}</TableCell>
-                                <TableCell className="max-w-[200px] truncate" title={job.address}>{job.address}</TableCell>
-                                <TableCell>
-                                    {(job.users as any)?.full_name || 'Sin asignar'}
-                                </TableCell>
-                                <TableCell>
-                                    <span className={`px-2 py-1 rounded-full text-xs font-semibold
-                    ${job.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : ''}
-                    ${job.status === 'en_revision' ? 'bg-blue-100 text-blue-800' : ''}
-                    ${job.status === 'approved' ? 'bg-green-100 text-green-800' : ''}
-                    ${job.status === 'paid' ? 'bg-gray-100 text-gray-800' : ''}
-                   `}>
-                                        {job.status === 'pending' && 'Pendiente'}
-                                        {job.status === 'en_revision' && 'En Revisión'}
-                                        {job.status === 'approved' && 'Aprobado'}
-                                        {job.status === 'paid' && 'Pagado'}
-                                    </span>
-                                </TableCell>
-                                <TableCell className="text-right">
-                                    {job.amount ? `${job.amount} €` : '-'}
-                                </TableCell>
-                                <TableCell>
-                                    <JobRowActions job={job} />
-                                </TableCell>
-                            </TableRow>
-                        ))}
-                        {(!jobs || jobs.length === 0) && (
-                            <TableRow>
-                                <TableCell colSpan={7} className="text-center py-10 text-gray-500">
-                                    No hay trabajos registrados.
-                                </TableCell>
-                            </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
+                <JobsTable jobs={jobs || []} />
             </div>
         </div>
     )
