@@ -5,9 +5,11 @@ import { Button } from '@/components/ui/button'
 import { RejectionReasonDialog } from '@/components/rejection-reason-dialog'
 import { approveJob, rejectJob } from './actions'
 import { toast } from 'sonner'
-import { CheckCircle, Loader2, XCircle, Camera, FileSignature, AlertCircle, Download } from 'lucide-react'
+import { CheckCircle, Loader2, XCircle, Camera, FileSignature, AlertCircle, Download, Maximize2 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Separator } from "@/components/ui/separator"
 
 interface ApprovalDetailViewProps {
     job: any
@@ -17,6 +19,7 @@ interface ApprovalDetailViewProps {
 export function ApprovalDetailView({ job, onProcessed }: ApprovalDetailViewProps) {
     const [isPending, startTransition] = useTransition()
     const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false)
+    const [previewImage, setPreviewImage] = useState<string | null>(null)
 
     const photos = job.evidence.filter((e: any) => e.type === 'photo')
     const signatures = job.evidence.filter((e: any) => e.type === 'signature')
@@ -53,100 +56,104 @@ export function ApprovalDetailView({ job, onProcessed }: ApprovalDetailViewProps
         job.evidence.forEach((e: any) => window.open(e.url, '_blank'))
     }
 
-    const [previewImage, setPreviewImage] = useState<string | null>(null)
-
     return (
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col h-full bg-background">
             {/* Header */}
-            <div className="p-6 border-b bg-muted/10">
-                <div className="flex justify-between items-start">
-                    <div>
-                        <h2 className="text-2xl font-bold">{job.title}</h2>
-                        <div className="flex items-center gap-2 mt-1 text-muted-foreground">
-                            <span>{job.client_name}</span>
+            <div className="flex flex-col border-b bg-background px-6 py-4">
+                <div className="flex items-start justify-between">
+                    <div className="space-y-1">
+                        <h2 className="text-2xl font-bold leading-tight tracking-tight">{job.title}</h2>
+                        <div className="text-sm text-muted-foreground flex items-center gap-2">
+                            <span className="font-medium text-foreground">{job.client_name}</span>
                             <span>•</span>
                             <span>{job.address}</span>
                         </div>
                     </div>
-                    <div className="text-right">
-                        <div className="text-sm font-medium">Monto estimado</div>
-                        <div className="text-xl font-bold">{job.amount ? `${job.amount} €` : '-'}</div>
+                    <div className="flex flex-col items-end">
+                        <span className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Monto Estimado</span>
+                        <span className="text-2xl font-bold tabular-nums">
+                            {job.amount ? `${job.amount}€` : '-'}
+                        </span>
                     </div>
                 </div>
 
-                <div className="flex gap-4 mt-4 text-sm">
-                    <Badge variant="outline" className="gap-1 pl-1">
-                        <Camera className="w-3 h-3" />
-                        {photos.length} Fotos
-                    </Badge>
-                    <Badge variant="outline" className="gap-1 pl-1">
-                        <FileSignature className="w-3 h-3" />
-                        {signatures.length} Actas
-                    </Badge>
-                    <Button variant="ghost" size="sm" onClick={handleDownloadAll} className="h-6 text-xs ml-auto">
-                        <Download className="w-3 h-3 mr-1" />
-                        Abrir todas
+                <Separator className="my-4" />
+
+                <div className="flex items-center justify-between">
+                    <div className="flex gap-2">
+                        <Badge variant="secondary" className="gap-1 pl-1 pr-2 py-1">
+                            <Camera className="w-3 h-3 text-muted-foreground" />
+                            {photos.length} Fotos
+                        </Badge>
+                        <Badge variant="secondary" className="gap-1 pl-1 pr-2 py-1">
+                            <FileSignature className="w-3 h-3 text-muted-foreground" />
+                            {signatures.length} Actas
+                        </Badge>
+                    </div>
+                    <Button variant="outline" size="sm" onClick={handleDownloadAll} className="h-8 gap-2">
+                        <Download className="w-3.5 h-3.5" />
+                        Descargar Todo
                     </Button>
                 </div>
             </div>
 
             {/* Evidence Grid (Scrollable) */}
-            <div className="flex-1 overflow-auto p-6 bg-slate-50/50">
+            <ScrollArea className="flex-1 bg-muted/10 p-6">
                 {job.evidence.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-40 text-muted-foreground border-2 border-dashed rounded-lg">
-                        <AlertCircle className="w-8 h-8 mb-2 opacity-50" />
-                        No hay evidencias subidas
+                    <div className="flex flex-col items-center justify-center h-[300px] text-muted-foreground border-2 border-dashed rounded-lg bg-background m-6">
+                        <AlertCircle className="w-10 h-10 mb-3 opacity-20" />
+                        <p className="font-medium">No hay evidencias subidas</p>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 pb-20">
                         {job.evidence.map((item: any) => (
-                            <Card key={item.id} className="overflow-hidden group hover:shadow-md transition-shadow">
-                                <CardContent className="p-0 relative aspect-square">
+                            <div key={item.id} className="group relative break-inside-avoid overflow-hidden rounded-lg border bg-background shadow-sm transition-all hover:shadow-md">
+                                <div className="aspect-square relative cursor-zoom-in" onClick={() => setPreviewImage(item.url)}>
                                     <img
                                         src={item.url}
                                         alt="Evidencia"
-                                        className="w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform duration-300"
-                                        onClick={() => setPreviewImage(item.url)}
+                                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                        loading="lazy"
                                     />
+                                    <div className="absolute inset-0 bg-black/0 transition-colors group-hover:bg-black/10 flex items-center justify-center opacity-0 group-hover:opacity-100">
+                                        <Maximize2 className="w-6 h-6 text-white drop-shadow-md" />
+                                    </div>
                                     <div className="absolute top-2 right-2">
-                                        <Badge className={item.type === 'signature' ? 'bg-purple-100 text-purple-700 hover:bg-purple-100' : 'bg-blue-100 text-blue-700 hover:bg-blue-100'}>
+                                        <Badge className={item.type === 'signature' ? 'bg-purple-500/90 hover:bg-purple-600/90' : 'bg-blue-500/90 hover:bg-blue-600/90'} variant="secondary">
                                             {item.type === 'signature' ? 'Acta' : 'Foto'}
                                         </Badge>
                                     </div>
-                                </CardContent>
-                            </Card>
+                                </div>
+                            </div>
                         ))}
                     </div>
                 )}
-            </div>
+            </ScrollArea>
 
             {/* Footer Actions (Sticky) */}
-            <div className="p-4 border-t bg-white flex justify-between items-center gap-4 shadow-lg z-10">
-                <Button
-                    variant="ghost"
-                    onClick={() => setIsRejectDialogOpen(true)}
-                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                    disabled={isPending}
-                >
-                    <XCircle className="w-5 h-5 mr-2" />
-                    Rechazar Trabajo
-                </Button>
+            <div className="border-t bg-background p-4 shadow-2xl z-20">
+                <div className="flex items-center justify-between gap-4 max-w-4xl mx-auto">
+                    <Button
+                        variant="ghost"
+                        onClick={() => setIsRejectDialogOpen(true)}
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                        disabled={isPending}
+                    >
+                        <XCircle className="w-5 h-5 mr-2" />
+                        Rechazar
+                    </Button>
 
-                <div className="flex items-center gap-4">
-                    <span className="text-sm text-muted-foreground italic hidden sm:inline">
-                        Se abrirá el siguiente automáticamente
-                    </span>
                     <Button
                         onClick={handleApprove}
                         disabled={isPending}
-                        className="bg-green-600 hover:bg-green-700 min-w-[150px] h-12 text-lg shadow-green-200 shadow-lg"
+                        className="min-w-[200px] h-11 text-base shadow-lg transition-all hover:translate-y-[-1px] active:translate-y-[0px]"
                     >
                         {isPending ? (
                             <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                         ) : (
                             <CheckCircle className="w-5 h-5 mr-2" />
                         )}
-                        Aprobar Trabajo
+                        Aprobar y Siguiente
                     </Button>
                 </div>
             </div>
@@ -160,29 +167,28 @@ export function ApprovalDetailView({ job, onProcessed }: ApprovalDetailViewProps
                 isPending={isPending}
             />
 
-            {/* Image Preview Dialog */}
+            {/* Image Preview Overlay */}
             {previewImage && (
                 <div
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-sm animate-in fade-in duration-200"
                     onClick={() => setPreviewImage(null)}
                 >
-                    <div className="relative max-w-full max-h-full">
+                    <div className="relative w-full h-full flex items-center justify-center p-4">
                         <img
                             src={previewImage}
                             alt="Vista previa"
-                            className="max-w-[90vw] max-h-[90vh] rounded-lg shadow-2xl object-contain"
+                            className="max-w-full max-h-full rounded-md shadow-2xl object-contain animate-in zoom-in-95 duration-200"
                         />
                         <Button
-                            className="absolute top-[-20px] right-[-20px] rounded-full"
-                            size="icon"
-                            variant="destructive"
-                            onClick={() => setPreviewImage(null)}
+                            className="absolute top-4 right-4 rounded-full w-10 h-10 p-0"
+                            variant="secondary"
+                            onClick={(e) => {
+                                e.stopPropagation()
+                                setPreviewImage(null)
+                            }}
                         >
                             <XCircle className="w-6 h-6" />
                         </Button>
-                        <p className="text-white text-center mt-2 text-sm bg-black/50 px-3 py-1 rounded-full mx-auto w-fit">
-                            Click fuera para cerrar
-                        </p>
                     </div>
                 </div>
             )}

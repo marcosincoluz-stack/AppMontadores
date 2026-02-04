@@ -1,8 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { ApprovalJobList } from './approval-job-list'
 import { ApprovalDetailView } from './approval-detail-view'
+import {
+    ResizableHandle,
+    ResizablePanel,
+    ResizablePanelGroup,
+} from "@/components/ui/resizable"
 
 interface ApprovalsWorkspaceProps {
     initialJobs: any[]
@@ -42,21 +47,24 @@ export function ApprovalsWorkspace({ initialJobs }: ApprovalsWorkspaceProps) {
     }
 
     return (
-        <div className="flex h-[calc(100vh-12rem)] gap-4">
-            <div className="w-[350px] flex-shrink-0 border rounded-lg bg-white overflow-hidden flex flex-col">
-                <div className="p-4 border-b bg-muted/30">
-                    <h3 className="font-semibold">Cola de Revisión ({jobs.length})</h3>
+        <ResizablePanelGroup
+            orientation="horizontal"
+            className="h-[calc(100vh-12rem)] max-h-[800px] items-stretch rounded-md border"
+        >
+            <ResizablePanel defaultSize={30} minSize={25} maxSize={40} className="flex flex-col">
+                <div className="flex items-center px-4 py-2 border-b bg-muted/30 h-[52px]">
+                    <h1 className="text-xl font-bold">Revisiones ({jobs.length})</h1>
                 </div>
-                <div className="flex-1 overflow-auto">
-                    <ApprovalJobList
-                        jobs={jobs}
-                        selectedJobId={selectedJobId}
-                        onSelect={setSelectedJobId}
-                    />
-                </div>
-            </div>
+                <ApprovalJobList
+                    jobs={jobs}
+                    selectedJobId={selectedJobId}
+                    onSelect={setSelectedJobId}
+                />
+            </ResizablePanel>
 
-            <div className="flex-1 border rounded-lg bg-white overflow-hidden flex flex-col">
+            <ResizableHandle withHandle />
+
+            <ResizablePanel defaultSize={70}>
                 {selectedJob ? (
                     <ApprovalDetailView
                         job={selectedJob}
@@ -67,7 +75,7 @@ export function ApprovalsWorkspace({ initialJobs }: ApprovalsWorkspaceProps) {
                         Selecciona un trabajo para revisar
                     </div>
                 )}
-            </div>
-        </div>
+            </ResizablePanel>
+        </ResizablePanelGroup>
     )
 }
