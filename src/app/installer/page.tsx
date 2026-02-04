@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
 import { MapPin, AlertCircle, ChevronRight, Clock, CheckCircle } from 'lucide-react'
 import { IncidentStartupDialog } from '@/components/incident-startup-dialog'
+import { NotificationsBtn } from '@/components/notifications-btn'
 
 export default async function InstallerDashboard() {
     const supabase = await createClient()
@@ -36,7 +37,10 @@ export default async function InstallerDashboard() {
 
     return (
         <div className="space-y-3 p-4 max-w-lg mx-auto">
-            <h2 className="text-xl font-semibold tracking-tight">Mis Trabajos</h2>
+            <div className="flex items-center justify-between">
+                <h2 className="text-xl font-semibold tracking-tight">Mis Trabajos</h2>
+                <NotificationsBtn />
+            </div>
 
             <IncidentStartupDialog rejectedJobCount={rejectedCount} />
 
