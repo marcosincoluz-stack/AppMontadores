@@ -3,11 +3,6 @@
 import { useState } from 'react'
 import { ApprovalJobList } from './approval-job-list'
 import { ApprovalDetailView } from './approval-detail-view'
-import {
-    ResizableHandle,
-    ResizablePanel,
-    ResizablePanelGroup,
-} from "@/components/ui/resizable"
 
 interface ApprovalsWorkspaceProps {
     initialJobs: any[]
@@ -29,7 +24,6 @@ export function ApprovalsWorkspace({ initialJobs }: ApprovalsWorkspaceProps) {
 
         // Auto-advance logic
         if (newJobs.length > 0) {
-            // Try to keep same index, or go to last if we were at the end
             const nextIndex = Math.min(currentIndex, newJobs.length - 1)
             setSelectedJobId(newJobs[nextIndex].id)
         } else {
@@ -47,13 +41,11 @@ export function ApprovalsWorkspace({ initialJobs }: ApprovalsWorkspaceProps) {
     }
 
     return (
-        <ResizablePanelGroup
-            orientation="horizontal"
-            className="h-full items-stretch rounded-md border"
-        >
-            <ResizablePanel defaultSize={30} minSize={20} maxSize={45} className="flex flex-col">
-                <div className="flex items-center px-4 py-2 border-b bg-muted/30 h-[52px] shrink-0">
-                    <h1 className="text-xl font-bold">Revisiones ({jobs.length})</h1>
+        <div className="flex h-full rounded-lg border overflow-hidden">
+            {/* Left Sidebar - Job List */}
+            <div className="w-80 shrink-0 flex flex-col border-r bg-muted/30">
+                <div className="flex items-center px-4 py-3 border-b bg-background/50 shrink-0">
+                    <h1 className="text-lg font-semibold">Revisiones ({jobs.length})</h1>
                 </div>
                 <div className="flex-1 overflow-hidden">
                     <ApprovalJobList
@@ -62,11 +54,10 @@ export function ApprovalsWorkspace({ initialJobs }: ApprovalsWorkspaceProps) {
                         onSelect={setSelectedJobId}
                     />
                 </div>
-            </ResizablePanel>
+            </div>
 
-            <ResizableHandle withHandle />
-
-            <ResizablePanel defaultSize={70}>
+            {/* Right Panel - Detail View */}
+            <div className="flex-1 flex flex-col min-w-0 bg-background">
                 {selectedJob ? (
                     <ApprovalDetailView
                         job={selectedJob}
@@ -77,7 +68,7 @@ export function ApprovalsWorkspace({ initialJobs }: ApprovalsWorkspaceProps) {
                         Selecciona un trabajo para revisar
                     </div>
                 )}
-            </ResizablePanel>
-        </ResizablePanelGroup>
+            </div>
+        </div>
     )
 }
