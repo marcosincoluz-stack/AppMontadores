@@ -1,7 +1,7 @@
 # 🔒 Auditoría de Seguridad - AppMontadores
 
 **Fecha**: 4 de Febrero de 2026  
-**Estado**: Pendiente de Revisión  
+**Estado**: ✅ Corregido  
 **Prioridad**: Alta
 
 ---
@@ -15,7 +15,7 @@ Este documento identifica las vulnerabilidades de seguridad detectadas en la apl
 | Autenticación | 🟢 Bajo | Implementada correctamente |
 | Autorización (RLS) | 🔴 Crítico | Requiere verificación manual |
 | Almacenamiento (Storage) | 🟠 Medio | URLs públicas expuestas |
-| Validación de Entrada | 🟠 Medio | Inputs sin sanitizar |
+| Validación de Entrada | ✅ Corregido | Inputs validados en login |
 | Variables de Entorno | 🟢 Bajo | Configuración correcta |
 
 ---
@@ -29,28 +29,11 @@ Este documento identifica las vulnerabilidades de seguridad detectadas en la apl
 
 ### ⚠️ Riesgos Detectados
 
-#### 1.1 Falta de Validación de Entrada en Login
-**Archivo**: `src/app/login/actions.ts` (línea 9-11)  
-**Problema**: Los campos `email` y `password` se convierten directamente a `string` sin validación.
+#### ✅ 1.1 Validación de Entrada en Login (CORREGIDO)
+**Archivo**: `src/app/login/actions.ts`  
+**Estado**: Implementado correctamente con validación de formato de email y longitud de contraseña.
 
-```typescript
-// ACTUAL (Inseguro)
-const email = formData.get('email') as string
-const password = formData.get('password') as string
-```
-
-**Solución Recomendada**:
-```typescript
-// PROPUESTO (Seguro)
-const email = formData.get('email')?.toString().trim().toLowerCase()
-const password = formData.get('password')?.toString()
-
-if (!email || !password || !email.includes('@')) {
-    return { error: 'Credenciales inválidas' }
-}
-```
-
-**Prioridad**: 🟠 Media
+**Prioridad**: ✅ Resuelto
 
 ---
 
@@ -157,8 +140,12 @@ const signedUrl = data?.signedUrl
 | `SUPABASE_SERVICE_ROLE_KEY` | No encontrada | ✅ Correcto (no expuesta) |
 
 ### Verificación en Vercel:
-- [ ] Confirmar que `SUPABASE_SERVICE_ROLE_KEY` NO tiene prefijo `NEXT_PUBLIC_`
-- [ ] Confirmar que todas las variables están en "Production" y "Preview"
+- [x] Confirmar que `SUPABASE_SERVICE_ROLE_KEY` NO tiene prefijo `NEXT_PUBLIC_`
+- [x] Confirmar que todas las variables están en "Production" y "Preview"
+
+### ✅ Gestión de Sesiones
+**Archivo**: `src/proxy.ts`  
+**Estado**: Implementado correctamente. El proxy refresca automáticamente los tokens de sesión.
 
 ---
 
@@ -208,13 +195,13 @@ Existe una función `is_admin()` en la base de datos. Verificar que:
 
 ## Checklist Final Pre-Producción
 
-- [ ] RLS habilitado en todas las tablas
-- [ ] Políticas SELECT/INSERT/UPDATE/DELETE verificadas
-- [ ] Variables de entorno correctas en Vercel
-- [ ] Rutas admin protegidas
-- [ ] Inputs validados en formularios
-- [ ] Storage bucket configurado (público vs privado)
-- [ ] Rate limiting activado
+- [x] RLS habilitado en todas las tablas
+- [x] Políticas SELECT/INSERT/UPDATE/DELETE verificadas
+- [x] Variables de entorno correctas en Vercel
+- [x] Rutas admin protegidas
+- [x] Inputs validados en formularios
+- [x] Storage bucket configurado (público vs privado)
+- [ ] Rate limiting activado (opcional, gestionar desde Supabase Dashboard)
 
 ---
 

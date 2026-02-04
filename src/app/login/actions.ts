@@ -6,9 +6,24 @@ import { redirect } from 'next/navigation'
 export async function login(prevState: any, formData: FormData) {
     const supabase = await createClient()
 
-    // Type-casting here for convenience, validate in production
-    const email = formData.get('email') as string
-    const password = formData.get('password') as string
+    // Validación de entrada
+    const rawEmail = formData.get('email')
+    const rawPassword = formData.get('password')
+
+    if (!rawEmail || !rawPassword) {
+        return { error: 'Email y contraseña son requeridos' }
+    }
+
+    const email = rawEmail.toString().trim().toLowerCase()
+    const password = rawPassword.toString()
+
+    if (!email.includes('@') || email.length < 5) {
+        return { error: 'Formato de email inválido' }
+    }
+
+    if (password.length < 6) {
+        return { error: 'La contraseña debe tener al menos 6 caracteres' }
+    }
 
     const { error, data } = await supabase.auth.signInWithPassword({
         email,
