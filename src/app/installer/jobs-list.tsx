@@ -156,13 +156,6 @@ export function InstallerJobsList({ initialJobs, rejectedCount }: { initialJobs:
                                                     {job.status === 'paid' && 'Pagado'}
                                                 </Badge>
                                             )}
-
-                                            {distanceText && (
-                                                <Badge variant="secondary" className={`${isClose ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'} h-5 px-1.5 text-[10px] gap-1`}>
-                                                    <Navigation className="h-3 w-3" />
-                                                    {distanceText}
-                                                </Badge>
-                                            )}
                                         </div>
 
                                         <p className="text-xs text-muted-foreground truncate">
