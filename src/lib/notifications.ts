@@ -1,4 +1,4 @@
-import { createClient } from '@/utils/supabase/server'
+import { createAdminClient } from '@/utils/supabase/server'
 
 export type NotificationType = 'info' | 'success' | 'warning' | 'error'
 
@@ -15,7 +15,7 @@ export async function createNotification({
     type?: NotificationType
     metadata?: Record<string, any>
 }) {
-    const supabase = await createClient()
+    const supabase = await createAdminClient()
 
     try {
         const { error } = await supabase
