@@ -57,15 +57,17 @@ export function JobStatusFooter({ jobId, initialPhotoCount = 0, initialSignature
     if (signatureCount === 0) missing.push('Acta')
 
     const isComplete = missing.length === 0
+    const hasEvidenceChanged = photoCount !== initialPhotoCount || signatureCount !== initialSignatureCount
 
-    // visual check: if complete, we assume it's being processed
+    // visual check: only show completing if it IS complete AND we have actively uploaded something new
+    // This prevents the green bar from showing up repeatedly on rejected jobs that already satisfy the count requirements
     useEffect(() => {
-        if (isComplete) {
+        if (isComplete && hasEvidenceChanged) {
             setIsCompleting(true)
         } else {
             setIsCompleting(false)
         }
-    }, [isComplete])
+    }, [isComplete, hasEvidenceChanged])
 
     if (isCompleting) {
         return (
