@@ -165,3 +165,34 @@ export async function notifyInstallers(jobIds: string[]) {
 
     return { success: true, count }
 }
+
+export async function getJobsEvidence(jobIds: string[]) {
+    const supabase = await createClient()
+
+    // 1. Verify Authentication
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('Unauthorized')
+
+    // 2. Fetch Jobs + Evidence
+    const { data: jobs, error } = await supabase
+        .from('jobs')
+        .select(`
+            id,
+            title,
+            client_name,
+            evidence (
+                id,
+                url,
+                type,
+                form_data
+            )
+        `)
+        .in('id', jobIds)
+
+    if (error) {
+        console.error('Error fetching jobs evidence:', error)
+        throw new Error('Error al obtener datos de los trabajos')
+    }
+
+    return jobs
+}

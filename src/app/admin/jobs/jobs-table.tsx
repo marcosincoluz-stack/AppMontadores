@@ -22,7 +22,7 @@ import { JobRowActions } from './job-row-actions'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { notifyInstallers } from './actions'
-import { MessageSquare, CheckSquare, Search, FilterX, Loader2, CheckCircle, Clock } from 'lucide-react'
+import { MessageSquare, CheckSquare, Search, FilterX, Loader2, CheckCircle, Clock, Download } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 
 interface JobsTableProps {
@@ -121,6 +121,94 @@ export function JobsTable({ jobs, installers }: JobsTableProps) {
         }
     }
 
+    const [isZipping, setIsZipping] = useState(false)
+
+    // ... (filters logic remains)
+
+    const handleDownloadZip = async () => {
+        if (selectedJobIds.size === 0) return
+
+        setIsZipping(true)
+        const toastId = toast.loading('Preparando descarga...')
+
+        try {
+            // Lazy load libraries to avoid bundle bloat
+            const JSZip = (await import('jszip')).default
+            const saveAs = (await import('file-saver')).saveAs
+            const { getJobsEvidence } = await import('./actions')
+
+            // 1. Fetch metadata
+            toast.message('Obteniendo datos de trabajos...', { id: toastId })
+            const jobsData = await getJobsEvidence(Array.from(selectedJobIds))
+
+            if (!jobsData || jobsData.length === 0) {
+                toast.error('No se encontraron datos', { id: toastId })
+                return
+            }
+
+            const zip = new JSZip()
+            let fileCount = 0
+
+            // 2. Process each job
+            for (const job of jobsData) {
+                // Sanitize folder name
+                const folderName = `${job.title} - ${job.client_name}`.replace(/[\/\\?%*:|"<>]/g, '-')
+                const folder = zip.folder(folderName)
+
+                if (!folder) continue
+
+                // Check for evidence
+                const evidences = job.evidence
+                if (!evidences || evidences.length === 0) {
+                    folder.file('no_evidence.txt', 'Este trabajo no tiene evidencias adjuntas.')
+                    continue
+                }
+
+                // 3. Download each file
+                toast.message(`Descargando ${evidences.length} archivos de "${job.title}"...`, { id: toastId })
+
+                // Parallel download for this job
+                const downloadPromises = evidences.map(async (ev: any, index: number) => {
+                    try {
+                        const response = await fetch(ev.url)
+                        if (!response.ok) throw new Error('Fetch failed')
+                        const blob = await response.blob()
+
+                        // Determine extension
+                        const ext = ev.type === 'signature' ? 'png' :
+                            ev.url.split('.').pop()?.split('?')[0] || 'jpg'
+
+                        const fileName = `evidencia_${index + 1}.${ext}`
+                        folder.file(fileName, blob)
+                        fileCount++
+                    } catch (e) {
+                        console.error(`Error downloading ${ev.url}`, e)
+                        folder.file(`error_${index + 1}.txt`, `Error al descargar: ${ev.url}`)
+                    }
+                })
+
+                await Promise.all(downloadPromises)
+            }
+
+            // 4. Generate Zip
+            toast.message('Generando archivo ZIP...', { id: toastId })
+            const content = await zip.generateAsync({ type: 'blob' })
+
+            // 5. Save
+            const timestamp = new Date().toISOString().split('T')[0]
+            saveAs(content, `Trabajos_Montadores_${timestamp}.zip`)
+
+            toast.success(`ZIP descargado (${fileCount} archivos)`, { id: toastId })
+            setSelectedJobIds(new Set()) // Optional: Clear selection
+
+        } catch (error) {
+            console.error('ZIP Error:', error)
+            toast.error('Error al generar el ZIP', { id: toastId })
+        } finally {
+            setIsZipping(false)
+        }
+    }
+
     const hasSelection = selectedJobIds.size > 0
     const allSelected = filteredJobs.length > 0 && selectedJobIds.size === filteredJobs.length
 
@@ -183,14 +271,30 @@ export function JobsTable({ jobs, installers }: JobsTableProps) {
                         </span>
                     </div>
 
-                    <Button
-                        size="sm"
-                        onClick={handleBulkNotify}
-                        disabled={isNotifying}
-                    >
-                        <MessageSquare className="w-4 h-4 mr-2" />
-                        {isNotifying ? 'Enviando...' : 'Enviar Notificación'}
-                    </Button>
+                    <div className="flex gap-2">
+                        <Button
+                            size="sm"
+                            variant="secondary"
+                            onClick={handleDownloadZip}
+                            disabled={isZipping}
+                        >
+                            {isZipping ? (
+                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            ) : (
+                                <Download className="w-4 h-4 mr-2" />
+                            )}
+                            {isZipping ? 'Comprimiendo...' : 'Descargar ZIP'}
+                        </Button>
+
+                        <Button
+                            size="sm"
+                            onClick={handleBulkNotify}
+                            disabled={isNotifying}
+                        >
+                            <MessageSquare className="w-4 h-4 mr-2" />
+                            {isNotifying ? 'Enviando...' : 'Enviar Notificación'}
+                        </Button>
+                    </div>
                 </div>
             )}
 
