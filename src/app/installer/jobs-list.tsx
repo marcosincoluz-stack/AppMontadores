@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
@@ -96,14 +96,21 @@ export function InstallerJobsList({ initialJobs, rejectedCount, userId }: { init
         )
     }, [])
 
+    // Sync initialJobs when they change from server (e.g. navigation)
     useEffect(() => {
-        if (!userLocation) {
-            setJobs(initialJobs) // Fallback to server sort
-            return
-        }
+        setJobs(initialJobs)
+    }, [initialJobs])
 
-        const sorted = [...initialJobs].sort((a, b) => {
-            // Priority 0: Status (PENDING is always first)
+    const sortedJobs = useMemo(() => {
+        return [...jobs].sort((a, b) => {
+            // Priority 0: Incidents (Pending + Rejection Reason) - UPDATE: User emphasized this as TOP priority
+            const aIsIncident = a.status === 'pending' && a.rejection_reason
+            const bIsIncident = b.status === 'pending' && b.rejection_reason
+
+            if (aIsIncident && !bIsIncident) return -1
+            if (!aIsIncident && bIsIncident) return 1
+
+            // Priority 1: Pending (Normal)
             const aIsPending = a.status === 'pending'
             const bIsPending = b.status === 'pending'
 
@@ -114,30 +121,20 @@ export function InstallerJobsList({ initialJobs, rejectedCount, userId }: { init
             let distA = Infinity
             let distB = Infinity
 
-            if (a.lat && a.lng) distA = calculateDistance(userLocation.lat, userLocation.lng, a.lat, a.lng)
-            if (b.lat && b.lng) distB = calculateDistance(userLocation.lat, userLocation.lng, b.lat, b.lng)
+            if (userLocation && a.lat && a.lng) distA = calculateDistance(userLocation.lat, userLocation.lng, a.lat, a.lng)
+            if (userLocation && b.lat && b.lng) distB = calculateDistance(userLocation.lat, userLocation.lng, b.lat, b.lng)
 
-            // If both are PENDING
-            if (aIsPending && bIsPending) {
-                // Priority 1: Rejected/Incidents (Most urgent)
-                const aRejected = a.rejection_reason
-                const bRejected = b.rejection_reason
-                if (aRejected && !bRejected) return -1
-                if (!aRejected && bRejected) return 1
-
-                // Priority 2: Distance
+            // Within same category (Incidents or Pending): Sort by Distance
+            if ((aIsIncident && bIsIncident) || (aIsPending && bIsPending)) {
                 if (distA !== Infinity && distB !== Infinity) return distA - distB
                 if (distA !== Infinity) return -1
                 if (distB !== Infinity) return 1
             }
 
-            // If both are NON-PENDING (or fallback for pending without location/rejection diff)
-            // Sort by Date (newest first)
+            // Fallback: Sort by Date (newest first)
             return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         })
-
-        setJobs(sorted)
-    }, [userLocation, initialJobs])
+    }, [jobs, userLocation])
 
     return (
         <div className="space-y-3 p-4 max-w-lg mx-auto">
@@ -152,7 +149,7 @@ export function InstallerJobsList({ initialJobs, rejectedCount, userId }: { init
             <IncidentStartupDialog rejectedJobCount={rejectedCount} />
 
             <div className="space-y-2">
-                {jobs.map((job: any) => {
+                {sortedJobs.map((job: any) => {
                     const isRejected = job.status === 'pending' && job.rejection_reason
                     let distanceText = ''
                     let isClose = false
