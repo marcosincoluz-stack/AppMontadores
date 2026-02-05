@@ -63,6 +63,9 @@ export function InstallerJobsList({ initialJobs, rejectedCount, userId }: { init
                             current.map((job) => (job.id === payload.new.id ? payload.new : job))
                         )
                         router.refresh()
+                    } else if (payload.eventType === 'DELETE') {
+                        setJobs((current) => current.filter((job) => job.id !== payload.old.id))
+                        router.refresh()
                     }
                 }
             )
