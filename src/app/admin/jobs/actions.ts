@@ -4,7 +4,6 @@ import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createNotification } from '@/lib/notifications'
-import { geocodeAddress } from '@/lib/geocoding'
 import { sendPushNotification } from '@/lib/push'
 
 export async function createJob(formData: FormData) {
@@ -22,9 +21,9 @@ export async function createJob(formData: FormData) {
     const amountStr = formData.get('amount') as string
     const amount = amountStr ? parseFloat(amountStr) : null
 
-    // Attempt to geocode
-    const coords = await geocodeAddress(address)
-    console.log(`Geocoding '${address}':`, coords)
+    // Geolocation disabled temporarily to prevent Vercel errors
+    // const coords = await geocodeAddress(address)
+    // console.log(`Geocoding '${address}':`, coords)
 
     const { data: job, error } = await supabase
         .from('jobs')
@@ -36,8 +35,8 @@ export async function createJob(formData: FormData) {
             assigned_to: assignedTo,
             amount,
             status: 'pending',
-            lat: coords?.lat || null,
-            lng: coords?.lng || null
+            lat: null, // coords?.lat || null,
+            lng: null // coords?.lng || null
         })
         .select()
         .single()
