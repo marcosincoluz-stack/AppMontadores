@@ -7,70 +7,78 @@ import { createNotification } from '@/lib/notifications'
 import { sendPushNotification } from '@/lib/push'
 
 export async function createJob(formData: FormData) {
-    const supabase = await createClient()
+    try {
+        const supabase = await createClient()
 
-    // Validate admin
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) redirect('/login')
+        // Validate admin
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) redirect('/login')
 
-    const title = formData.get('title') as string
-    const description = formData.get('description') as string
-    const clientName = formData.get('clientName') as string
-    const address = formData.get('address') as string
-    const assignedTo = formData.get('assignedTo') as string
-    const amountStr = formData.get('amount') as string
-    const amount = amountStr ? parseFloat(amountStr) : null
+        const title = formData.get('title') as string
+        const description = formData.get('description') as string
+        const clientName = formData.get('clientName') as string
+        const address = formData.get('address') as string
+        const assignedTo = formData.get('assignedTo') as string
+        const amountStr = formData.get('amount') as string
+        const amount = amountStr ? parseFloat(amountStr) : null
 
-    // Geolocation disabled temporarily to prevent Vercel errors
-    // const coords = await geocodeAddress(address)
-    // console.log(`Geocoding '${address}':`, coords)
+        // Geolocation disabled temporarily to prevent Vercel errors
+        // const coords = await geocodeAddress(address)
+        // console.log(`Geocoding '${address}':`, coords)
 
-    const { data: job, error } = await supabase
-        .from('jobs')
-        .insert({
-            title,
-            description,
-            client_name: clientName,
-            address,
-            assigned_to: assignedTo,
-            amount,
-            status: 'pending',
-            lat: null, // coords?.lat || null,
-            lng: null // coords?.lng || null
-        })
-        .select()
-        .single()
+        const { data: job, error } = await supabase
+            .from('jobs')
+            .insert({
+                title,
+                description,
+                client_name: clientName,
+                address,
+                assigned_to: assignedTo,
+                amount,
+                status: 'pending',
+                lat: null, // coords?.lat || null,
+                lng: null // coords?.lng || null
+            })
+            .select()
+            .single()
 
-    if (error) {
-        console.error('Error creating job:', error)
-        return { error: error.message }
-    }
-
-    // Notify assigned installer
-    if (assignedTo && job) {
-        await createNotification({
-            userId: assignedTo,
-            title: 'Nuevo trabajo asignado',
-            message: `Se te ha asignado el trabajo: ${title} en ${clientName}`,
-            type: 'info',
-            metadata: { jobId: job.id }
-        })
-        // Send Push Notification (non-blocking)
-        try {
-            await sendPushNotification(
-                assignedTo,
-                'Nuevo trabajo asignado',
-                `${title} en ${clientName}`,
-                `/installer/jobs/${job.id}`
-            )
-        } catch (e) {
-            console.error('Push notification failed:', e)
+        if (error) {
+            console.error('Error creating job in DB:', error)
+            return { error: error.message }
         }
-    }
 
-    revalidatePath('/admin/jobs')
-    revalidatePath('/installer') // Update installer dashboard too
-    return { success: true }
+        // Notify assigned installer
+        if (assignedTo && job) {
+            try {
+                // We don't await this to prevent blocking, but we catch errors inside createNotification
+                createNotification({
+                    userId: assignedTo,
+                    title: 'Nuevo trabajo asignado',
+                    message: `Se te ha asignado el trabajo: ${title} en ${clientName}`,
+                    type: 'info',
+                    metadata: { jobId: job.id }
+                })
+
+                // Send Push Notification (non-blocking)
+                sendPushNotification(
+                    assignedTo,
+                    'Nuevo trabajo asignado',
+                    `${title} en ${clientName}`,
+                    `/installer/jobs/${job.id}`
+                ).catch(e => console.error('Push notification failed:', e))
+            } catch (notifyError) {
+                console.error('Notification logic error:', notifyError)
+                // Don't fail the job creation if notification fails
+            }
+        }
+
+        revalidatePath('/admin/jobs')
+        revalidatePath('/installer') // Update installer dashboard too
+        return { success: true }
+    } catch (e: any) {
+        console.error('CRITICAL ERROR in createJob:', e)
+        return { error: `Error interno del servidor: ${e.message || 'Desconocido'}` }
+    }
 }
 
 export async function deleteJob(jobId: string) {

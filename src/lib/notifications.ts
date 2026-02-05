@@ -34,8 +34,9 @@ export async function createNotification({
         }
 
         return { success: true }
-    } catch (e) {
+    } catch (e: any) {
         console.error('Exception creating notification:', e)
-        return { error: e }
+        // Return success=false instead of throwing, so calling code doesn't crash if it awaits this
+        return { error: e.message || 'Unknown error' }
     }
 }
