@@ -31,6 +31,6 @@ export default async function InstallerDashboard() {
     const rejectedCount = jobs.filter(j => j.status === 'pending' && j.rejection_reason).length
 
     return (
-        <InstallerJobsList initialJobs={jobs} rejectedCount={rejectedCount} />
+        <InstallerJobsList initialJobs={jobs} rejectedCount={rejectedCount} userId={user.id} />
     )
 }

@@ -7,7 +7,9 @@ import Link from 'next/link'
 import { MapPin, AlertCircle, ChevronRight, Clock, CheckCircle, Navigation, Loader2 } from 'lucide-react'
 import { IncidentStartupDialog } from '@/components/incident-startup-dialog'
 import { NotificationsBtn } from '@/components/notifications-btn'
+import { createClient } from '@/utils/supabase/client'
 import type { Database } from '@/types/supabase'
+import { useRouter } from 'next/navigation'
 
 type Job = any // Using any for now to avoid extensive type definitions, or define a shape
 // Idealmente: Database['public']['Tables']['jobs']['Row']
@@ -28,10 +30,48 @@ function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
     return d
 }
 
-export function InstallerJobsList({ initialJobs, rejectedCount }: { initialJobs: any[], rejectedCount: number }) {
+export function InstallerJobsList({ initialJobs, rejectedCount, userId }: { initialJobs: any[], rejectedCount: number, userId: string }) {
     const [jobs, setJobs] = useState(initialJobs)
     const [userLocation, setUserLocation] = useState<{ lat: number, lng: number } | null>(null)
     const [permissionDenied, setPermissionDenied] = useState(false)
+    const router = useRouter()
+    const supabase = createClient()
+
+    // Realtime Subscription
+    useEffect(() => {
+        const channel = supabase
+            .channel('jobs_installer')
+            .on(
+                'postgres_changes',
+                {
+                    event: '*',
+                    schema: 'public',
+                    table: 'jobs',
+                    filter: `assigned_to=eq.${userId}`
+                },
+                (payload) => {
+                    console.log('Realtime change received:', payload)
+                    // Optimistic update or just refresh? 
+                    // Refresh is safer to get full data and consistent sorting, 
+                    // but we can also manually update the state for speed.
+
+                    if (payload.eventType === 'INSERT') {
+                        setJobs((current) => [...current, payload.new])
+                        router.refresh() // Sync server components
+                    } else if (payload.eventType === 'UPDATE') {
+                        setJobs((current) =>
+                            current.map((job) => (job.id === payload.new.id ? payload.new : job))
+                        )
+                        router.refresh()
+                    }
+                }
+            )
+            .subscribe()
+
+        return () => {
+            supabase.removeChannel(channel)
+        }
+    }, [userId, supabase, router])
 
     useEffect(() => {
         if (!navigator.geolocation) return
