@@ -1,11 +1,12 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
-import { MapPin, AlertCircle, ChevronRight, Clock, CheckCircle, Navigation, Loader2, ChevronDown } from 'lucide-react'
+import { MapPin, AlertCircle, ChevronRight, Clock, CheckCircle, Navigation, Loader2, ChevronDown, Search, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { IncidentStartupDialog } from '@/components/incident-startup-dialog'
 import { NotificationsBtn } from '@/components/notifications-btn'
 import { createClient } from '@/utils/supabase/client'
@@ -36,9 +37,24 @@ export function InstallerJobsList({ initialJobs, rejectedCount, userId }: { init
     const [userLocation, setUserLocation] = useState<{ lat: number, lng: number } | null>(null)
     const [permissionDenied, setPermissionDenied] = useState(false)
     const [historyLimit, setHistoryLimit] = useState(15)
+
+    // Search State
+    const [isSearchOpen, setIsSearchOpen] = useState(false)
+    const [searchQuery, setSearchQuery] = useState('')
+    const searchInputRef = useRef<HTMLInputElement>(null)
+
     const router = useRouter()
     // Fix: Ensure supabase client is stable across renders
     const [supabase] = useState(() => createClient())
+
+    // Focus input when search opens
+    useEffect(() => {
+        if (isSearchOpen) {
+            setTimeout(() => {
+                searchInputRef.current?.focus()
+            }, 100)
+        }
+    }, [isSearchOpen])
 
     // Realtime Subscription
     useEffect(() => {
@@ -104,7 +120,19 @@ export function InstallerJobsList({ initialJobs, rejectedCount, userId }: { init
     }, [initialJobs])
 
     const sortedJobs = useMemo(() => {
-        return [...jobs].sort((a, b) => {
+        let filtered = [...jobs]
+
+        // Apply Search Filter
+        if (searchQuery.trim()) {
+            const query = searchQuery.toLowerCase().trim()
+            filtered = filtered.filter(job =>
+                (job.title?.toLowerCase().includes(query)) ||
+                (job.client_name?.toLowerCase().includes(query)) ||
+                (job.address?.toLowerCase().includes(query))
+            )
+        }
+
+        return filtered.sort((a, b) => {
             // Priority 0: Incidents (Pending + Rejection Reason) - UPDATE: User emphasized this as TOP priority
             const aIsIncident = a.status === 'pending' && a.rejection_reason
             const bIsIncident = b.status === 'pending' && b.rejection_reason
@@ -136,7 +164,7 @@ export function InstallerJobsList({ initialJobs, rejectedCount, userId }: { init
             // Fallback: Sort by Date (newest first)
             return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         })
-    }, [jobs, userLocation])
+    }, [jobs, userLocation, searchQuery])
 
     const activeJobs = sortedJobs.filter(job =>
         job.status === 'pending' || job.status === 'en_revision' || (job.status === 'pending' && job.rejection_reason)
@@ -150,12 +178,48 @@ export function InstallerJobsList({ initialJobs, rejectedCount, userId }: { init
 
     return (
         <div className="space-y-3 p-4 max-w-lg mx-auto">
-            <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold tracking-tight">Mis Trabajos</h2>
-                <div className="flex items-center gap-2">
-                    {userLocation && <Navigation className="h-4 w-4 text-green-500 animate-pulse" />}
-                    <NotificationsBtn />
-                </div>
+            <div className="flex items-center justify-between gap-2 h-10">
+                {!isSearchOpen ? (
+                    <>
+                        <h2 className="text-xl font-semibold tracking-tight">Mis Trabajos</h2>
+                        <div className="flex items-center gap-1">
+                            {userLocation && <Navigation className="h-4 w-4 text-green-500 animate-pulse mr-2" />}
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-9 w-9 rounded-full"
+                                onClick={() => setIsSearchOpen(true)}
+                            >
+                                <Search className="h-5 w-5 text-muted-foreground" />
+                            </Button>
+                            <NotificationsBtn />
+                        </div>
+                    </>
+                ) : (
+                    <div className="flex items-center w-full gap-2 animate-in fade-in slide-in-from-right-10 duration-200">
+                        <div className="relative flex-1">
+                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                            <Input
+                                ref={searchInputRef}
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                placeholder="Buscar cliente, dirección..."
+                                className="pl-9 h-10 bg-background"
+                            />
+                        </div>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                                setIsSearchOpen(false)
+                                setSearchQuery('')
+                            }}
+                            className="shrink-0 text-muted-foreground hover:text-foreground"
+                        >
+                            Cancelar
+                        </Button>
+                    </div>
+                )}
             </div>
 
             <IncidentStartupDialog rejectedJobCount={rejectedCount} />
