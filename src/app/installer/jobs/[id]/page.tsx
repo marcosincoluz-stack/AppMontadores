@@ -168,7 +168,8 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
             </div>
 
             {/* Sticky Footer Status Bar - sits above BottomNav (h-16) */}
-            {job.status === 'pending' && (
+            {/* ONLY show if pending AND NOT rejected (if rejected, the top Red Alert is enough) */}
+            {job.status === 'pending' && !job.rejection_reason && (
                 <div className="fixed bottom-16 left-0 right-0 z-[60] pb-safe">
                     <JobStatusFooter
                         jobId={job.id}
