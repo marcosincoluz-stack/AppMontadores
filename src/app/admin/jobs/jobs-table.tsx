@@ -170,8 +170,10 @@ export function JobsTable({ jobs, installers }: JobsTableProps) {
                 // Parallel download for this job
                 const downloadPromises = evidences.map(async (ev: any, index: number) => {
                     try {
-                        const response = await fetch(ev.url)
-                        if (!response.ok) throw new Error('Fetch failed')
+                        // Use proxy to avoid CORS issues
+                        const proxyUrl = `/api/proxy-image?url=${encodeURIComponent(ev.url)}`
+                        const response = await fetch(proxyUrl)
+                        if (!response.ok) throw new Error(`Fetch failed: ${response.statusText}`)
                         const blob = await response.blob()
 
                         // Determine extension
@@ -183,7 +185,7 @@ export function JobsTable({ jobs, installers }: JobsTableProps) {
                         fileCount++
                     } catch (e) {
                         console.error(`Error downloading ${ev.url}`, e)
-                        folder.file(`error_${index + 1}.txt`, `Error al descargar: ${ev.url}`)
+                        folder.file(`error_${index + 1}.txt`, `Error al descargar: ${ev.url}\n${e}`)
                     }
                 })
 
