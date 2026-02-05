@@ -113,6 +113,22 @@ export function UploadEvidenceForm({
             }
 
             toast.success('Archivo subido correctamente')
+
+            // 4. Check for auto-completion
+            const { checkAndCompleteJob } = await import('../actions')
+            const result = await checkAndCompleteJob(jobId)
+
+            if (result.success) {
+                if (result.completed) {
+                    toast.success('¡Perfecto! Trabajo finalizado y notificado.')
+                } else if (result.missing && result.missing.length > 0) {
+                    toast.warning(`Archivo guardado. AÚN NO HAS TERMINADO. Falta: ${result.missing.join(' y ')}`, {
+                        duration: 5000,
+                        className: 'bg-amber-50 border-amber-200 text-amber-900',
+                    })
+                }
+            }
+
             router.refresh()
 
         } catch (error: any) {

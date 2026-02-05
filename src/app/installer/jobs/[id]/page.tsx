@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { UploadEvidenceForm } from './upload-evidence-form'
 import { Badge } from '@/components/ui/badge'
-import { CompleteJobButton } from './complete-job-button'
+import { JobStatusFooter } from './job-status-footer'
 import { ArrowLeft, Camera, FileSignature, AlertTriangle } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Info } from 'lucide-react'
@@ -37,7 +37,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
     const signatureCount = signatures.length
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 pb-24">
             <Link href="/installer" className="flex items-center text-sm text-gray-500 hover:text-gray-900 mb-4">
                 <ArrowLeft className="h-4 w-4 mr-1" /> Volver a mis trabajos
             </Link>
@@ -165,15 +165,12 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
                     </div>
 
                 </div>
-
-                {/* Add slight padding at bottom to avoid content being hidden by sticky button */}
-                <div className="h-24"></div>
             </div>
 
-            {/* Sticky Footer for Action Button */}
+            {/* Sticky Footer Status Bar - only if pending */}
             {job.status === 'pending' && (
-                <div className="fixed bottom-0 left-0 right-0 p-4 pb-24 bg-white/95 backdrop-blur border-t shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-40 max-w-md mx-auto">
-                    <CompleteJobButton
+                <div className="fixed bottom-0 left-0 right-0 z-40">
+                    <JobStatusFooter
                         jobId={job.id}
                         initialPhotoCount={photoCount}
                         initialSignatureCount={signatureCount}
