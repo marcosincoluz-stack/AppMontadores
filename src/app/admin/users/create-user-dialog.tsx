@@ -13,6 +13,13 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select'
 import { Plus, Loader2 } from 'lucide-react'
 import { createInstaller } from './actions'
 
@@ -40,14 +47,14 @@ export function CreateUserDialog() {
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
                 <Button>
-                    <Plus className="mr-2 h-4 w-4" /> Nuevo Montador
+                    <Plus className="mr-2 h-4 w-4" /> Nuevo Usuario
                 </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>Crear Nuevo Montador</DialogTitle>
+                    <DialogTitle>Crear Nuevo Usuario</DialogTitle>
                     <DialogDescription>
-                        Crea una cuenta para que el montador pueda acceder a la App.
+                        Crea un usuario (Montador o Admin) con acceso a la App.
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit}>
@@ -97,6 +104,22 @@ export function CreateUserDialog() {
                                 name="phone"
                                 className="col-span-3"
                             />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="role" className="text-right">
+                                Rol
+                            </Label>
+                            <div className="col-span-3">
+                                <Select name="role" defaultValue="installer">
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Seleccionar rol" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="installer">Montador</SelectItem>
+                                        <SelectItem value="admin">Administrador (Oficina)</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
                         </div>
                     </div>
                     {error && (

@@ -1,22 +1,23 @@
 'use server'
 
-import { createClient } from '@/utils/supabase/server'
+import { createAdminClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 
 export async function createInstaller(formData: FormData) {
-    const supabase = await createClient()
+    const supabaseAdmin = await createAdminClient()
 
     const email = formData.get('email') as string
     const password = formData.get('password') as string
     const fullName = formData.get('fullName') as string
     const phone = formData.get('phone') as string
+    const role = (formData.get('role') as 'admin' | 'installer') || 'installer'
 
-    // Call the secure RPC function
-    // Note: RPC will fail if current user is not admin
-    const { data, error } = await supabase.rpc('create_new_installer', {
+    // Create user with Supabase Admin API
+    const { data, error } = await supabaseAdmin.auth.admin.createUser({
         email,
         password,
-        full_name: fullName
+        user_metadata: { full_name: fullName, role },
+        email_confirm: true // Auto confirm email
     })
 
     if (error) {
@@ -24,21 +25,20 @@ export async function createInstaller(formData: FormData) {
         return { error: error.message }
     }
 
-    // Update the public.users table with the phone number? 
-    // The trigger handles basic creating, but phone is not in the RPC args I defined!
-    // I should have added phone to RPC. But I can update it now.
-    // The trigger inserts into public.users.
-    // Let's update the user after creation to add phone.
-
-    if (data) { // data is new_id
-        const { error: updateError } = await supabase
+    if (data.user) {
+        // Update public.users table to ensure role and phone are set correctly
+        // (Trigger might have inserted partial data, let's update strict)
+        const { error: updateError } = await supabaseAdmin
             .from('users')
-            .update({ phone: phone })
-            .eq('id', data)
+            .update({
+                full_name: fullName,
+                phone: phone,
+                role: role
+            })
+            .eq('id', data.user.id)
 
         if (updateError) {
-            console.error('Error updating phone:', updateError)
-            // Non-critical error, user is created
+            console.error('Error updating user profile:', updateError)
         }
     }
 

@@ -60,6 +60,8 @@ export type Database = {
                     id: string
                     rejection_reason: string | null
                     status: Database["public"]["Enums"]["job_status"] | null
+                    lat: number | null
+                    lng: number | null
                     title: string
                 }
                 Insert: {
@@ -72,6 +74,8 @@ export type Database = {
                     id?: string
                     rejection_reason?: string | null
                     status?: Database["public"]["Enums"]["job_status"] | null
+                    lat?: number | null
+                    lng?: number | null
                     title: string
                 }
                 Update: {
@@ -84,6 +88,8 @@ export type Database = {
                     id?: string
                     rejection_reason?: string | null
                     status?: Database["public"]["Enums"]["job_status"] | null
+                    lat?: number | null
+                    lng?: number | null
                     title?: string
                 }
                 Relationships: [
