@@ -170,10 +170,27 @@ export async function getJobsEvidence(jobIds: string[]) {
     const supabase = await createClient()
 
     // 1. Verify Authentication
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) throw new Error('Unauthorized')
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError) {
+        console.error('Auth error in getJobsEvidence:', authError)
+        throw new Error(`Error de autenticación: ${authError.message}`)
+    }
+    if (!user) {
+        throw new Error('No autorizado - Por favor inicia sesión de nuevo')
+    }
 
-    // 2. Fetch Jobs + Evidence
+    // 2. Verify user is admin
+    const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', user.id)
+        .single()
+
+    if (userError || userData?.role !== 'admin') {
+        throw new Error('Acceso denegado - Solo administradores')
+    }
+
+    // 3. Fetch Jobs + Evidence
     const { data: jobs, error } = await supabase
         .from('jobs')
         .select(`
@@ -191,8 +208,9 @@ export async function getJobsEvidence(jobIds: string[]) {
 
     if (error) {
         console.error('Error fetching jobs evidence:', error)
-        throw new Error('Error al obtener datos de los trabajos')
+        throw new Error(`Error de base de datos: ${error.message}`)
     }
 
+    console.log(`[getJobsEvidence] Fetched ${jobs?.length || 0} jobs for user ${user.id}`)
     return jobs
 }

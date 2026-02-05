@@ -139,10 +139,17 @@ export function JobsTable({ jobs, installers }: JobsTableProps) {
 
             // 1. Fetch metadata
             toast.message('Obteniendo datos de trabajos...', { id: toastId })
-            const jobsData = await getJobsEvidence(Array.from(selectedJobIds))
+            let jobsData
+            try {
+                jobsData = await getJobsEvidence(Array.from(selectedJobIds))
+            } catch (fetchError: any) {
+                console.error('Error fetching jobs evidence:', fetchError)
+                toast.error(`Error al obtener datos: ${fetchError.message || 'Error desconocido'}`, { id: toastId })
+                return
+            }
 
             if (!jobsData || jobsData.length === 0) {
-                toast.error('No se encontraron datos', { id: toastId })
+                toast.error('No se encontraron datos para los trabajos seleccionados', { id: toastId })
                 return
             }
 
@@ -203,9 +210,10 @@ export function JobsTable({ jobs, installers }: JobsTableProps) {
             toast.success(`ZIP descargado (${fileCount} archivos)`, { id: toastId })
             setSelectedJobIds(new Set()) // Optional: Clear selection
 
-        } catch (error) {
+        } catch (error: any) {
             console.error('ZIP Error:', error)
-            toast.error('Error al generar el ZIP', { id: toastId })
+            const errorMessage = error?.message || 'Error desconocido'
+            toast.error(`Error al generar el ZIP: ${errorMessage}`, { id: toastId })
         } finally {
             setIsZipping(false)
         }
