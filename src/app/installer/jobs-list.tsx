@@ -272,16 +272,16 @@ function JobCard({ job, userLocation }: { job: any, userLocation: { lat: number,
                                     job.status === 'en_revision' ? (
                                         <Loader2 className="h-3 w-3 animate-spin text-blue-500" />
                                     ) : (
-                                        <Loader2 className="h-3 w-3 text-amber-500" />
+                                        <Loader2 className="h-3 w-3 text-orange-500" />
                                     )
                                 )}
                                 <span className={
-                                    job.status === 'pending' ? 'text-amber-600' :
+                                    job.status === 'pending' ? 'text-orange-600 font-bold uppercase' :
                                         job.status === 'en_revision' ? 'text-blue-600' :
                                             job.status === 'approved' ? 'text-green-600' :
                                                 job.status === 'paid' ? 'text-gray-600' : ''
                                 }>
-                                    {job.status === 'pending' && 'Pendiente'}
+                                    {job.status === 'pending' && 'INCOMPLETO'}
                                     {job.status === 'en_revision' && 'Revisión'}
                                     {job.status === 'approved' && 'Aprobado'}
                                     {job.status === 'paid' && 'Pagado'}

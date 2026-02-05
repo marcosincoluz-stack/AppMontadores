@@ -67,12 +67,12 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
                 <div className="flex justify-between items-start gap-2">
                     <h1 className="text-xl font-bold leading-tight line-clamp-2">{job.title}</h1>
                     <Badge variant="outline" className={`text-[10px] h-5 font-normal tracking-wide uppercase border-0 shrink-0
-                        ${job.status === 'pending' ? 'bg-amber-100 text-amber-700 hover:bg-amber-100' : ''}
+                        ${job.status === 'pending' ? 'bg-orange-100 text-orange-700 hover:bg-orange-100 font-bold' : ''}
                         ${job.status === 'en_revision' ? 'bg-blue-100 text-blue-700 hover:bg-blue-100' : ''}
                         ${job.status === 'approved' ? 'bg-green-100 text-green-700 hover:bg-green-100' : ''}
                         ${job.status === 'paid' ? 'bg-zinc-100 text-zinc-700 hover:bg-zinc-100' : ''}
                     `}>
-                        {job.status === 'pending' && 'Pendiente'}
+                        {job.status === 'pending' && 'INCOMPLETO'}
                         {job.status === 'en_revision' && 'En Revisión'}
                         {job.status === 'approved' && 'Aprobado'}
                         {job.status === 'paid' && 'Pagado'}
@@ -167,9 +167,9 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
                 </div>
             </div>
 
-            {/* Sticky Footer Status Bar - only if pending */}
+            {/* Sticky Footer Status Bar - sits above BottomNav (h-16) */}
             {job.status === 'pending' && (
-                <div className="fixed bottom-0 left-0 right-0 z-40">
+                <div className="fixed bottom-16 left-0 right-0 z-[60] pb-safe">
                     <JobStatusFooter
                         jobId={job.id}
                         initialPhotoCount={photoCount}
