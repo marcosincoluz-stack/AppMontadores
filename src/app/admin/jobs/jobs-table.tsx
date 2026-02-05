@@ -139,15 +139,14 @@ export function JobsTable({ jobs, installers }: JobsTableProps) {
 
             // 1. Fetch metadata
             toast.message('Obteniendo datos de trabajos...', { id: toastId })
-            let jobsData
-            try {
-                jobsData = await getJobsEvidence(Array.from(selectedJobIds))
-            } catch (fetchError: any) {
-                console.error('Error fetching jobs evidence:', fetchError)
-                toast.error(`Error al obtener datos: ${fetchError.message || 'Error desconocido'}`, { id: toastId })
+            const result = await getJobsEvidence(Array.from(selectedJobIds))
+
+            if (!result.success) {
+                toast.error(result.error || 'Error desconocido al obtener datos', { id: toastId })
                 return
             }
 
+            const jobsData = result.data
             if (!jobsData || jobsData.length === 0) {
                 toast.error('No se encontraron datos para los trabajos seleccionados', { id: toastId })
                 return

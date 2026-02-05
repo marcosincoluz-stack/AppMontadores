@@ -166,51 +166,65 @@ export async function notifyInstallers(jobIds: string[]) {
     return { success: true, count }
 }
 
-export async function getJobsEvidence(jobIds: string[]) {
-    const supabase = await createClient()
+export async function getJobsEvidence(jobIds: string[]): Promise<{
+    success: boolean;
+    error?: string;
+    data?: any[];
+}> {
+    try {
+        const supabase = await createClient()
 
-    // 1. Verify Authentication
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError) {
-        console.error('Auth error in getJobsEvidence:', authError)
-        throw new Error(`Error de autenticación: ${authError.message}`)
-    }
-    if (!user) {
-        throw new Error('No autorizado - Por favor inicia sesión de nuevo')
-    }
+        // 1. Verify Authentication
+        const { data: { user }, error: authError } = await supabase.auth.getUser()
+        if (authError) {
+            console.error('Auth error in getJobsEvidence:', authError)
+            return { success: false, error: `Error de autenticación: ${authError.message}` }
+        }
+        if (!user) {
+            return { success: false, error: 'No autorizado - Por favor inicia sesión de nuevo' }
+        }
 
-    // 2. Verify user is admin
-    const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('role')
-        .eq('id', user.id)
-        .single()
+        // 2. Verify user is admin
+        const { data: userData, error: userError } = await supabase
+            .from('users')
+            .select('role')
+            .eq('id', user.id)
+            .single()
 
-    if (userError || userData?.role !== 'admin') {
-        throw new Error('Acceso denegado - Solo administradores')
-    }
+        if (userError) {
+            console.error('User fetch error:', userError)
+            return { success: false, error: `Error al verificar permisos: ${userError.message}` }
+        }
 
-    // 3. Fetch Jobs + Evidence
-    const { data: jobs, error } = await supabase
-        .from('jobs')
-        .select(`
-            id,
-            title,
-            client_name,
-            evidence (
+        if (userData?.role !== 'admin') {
+            return { success: false, error: 'Acceso denegado - Solo administradores' }
+        }
+
+        // 3. Fetch Jobs + Evidence
+        const { data: jobs, error } = await supabase
+            .from('jobs')
+            .select(`
                 id,
-                url,
-                type,
-                form_data
-            )
-        `)
-        .in('id', jobIds)
+                title,
+                client_name,
+                evidence (
+                    id,
+                    url,
+                    type,
+                    form_data
+                )
+            `)
+            .in('id', jobIds)
 
-    if (error) {
-        console.error('Error fetching jobs evidence:', error)
-        throw new Error(`Error de base de datos: ${error.message}`)
+        if (error) {
+            console.error('Error fetching jobs evidence:', error)
+            return { success: false, error: `Error de base de datos: ${error.message}` }
+        }
+
+        console.log(`[getJobsEvidence] Fetched ${jobs?.length || 0} jobs for user ${user.id}`)
+        return { success: true, data: jobs || [] }
+    } catch (e: any) {
+        console.error('Unexpected error in getJobsEvidence:', e)
+        return { success: false, error: `Error inesperado: ${e.message || 'Desconocido'}` }
     }
-
-    console.log(`[getJobsEvidence] Fetched ${jobs?.length || 0} jobs for user ${user.id}`)
-    return jobs
 }
