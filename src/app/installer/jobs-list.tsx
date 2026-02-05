@@ -139,35 +139,6 @@ export function InstallerJobsList({ initialJobs, rejectedCount }: { initialJobs:
                                             <h3 className="font-semibold text-base truncate leading-tight">
                                                 {job.title}
                                             </h3>
-
-                                            {isRejected ? (
-                                                <Badge variant="destructive" className="h-5 px-1.5 text-[10px] tracking-wide uppercase">
-                                                    Incidencia
-                                                </Badge>
-                                            ) : (
-                                                <Badge variant="outline" className="text-muted-foreground gap-1.5 py-0.5 pr-2.5 pl-1.5 font-normal border">
-                                                    {job.status === 'approved' || job.status === 'paid' ? (
-                                                        <CheckCircle className="h-3 w-3 fill-green-500 text-white" />
-                                                    ) : (
-                                                        job.status === 'en_revision' ? (
-                                                            <Loader2 className="h-3 w-3 animate-spin text-blue-500" />
-                                                        ) : (
-                                                            <Loader2 className="h-3 w-3 text-amber-500" />
-                                                        )
-                                                    )}
-                                                    <span className={
-                                                        job.status === 'pending' ? 'text-amber-600' :
-                                                            job.status === 'en_revision' ? 'text-blue-600' :
-                                                                job.status === 'approved' ? 'text-green-600' :
-                                                                    job.status === 'paid' ? 'text-gray-600' : ''
-                                                    }>
-                                                        {job.status === 'pending' && 'Pendiente'}
-                                                        {job.status === 'en_revision' && 'Revisión'}
-                                                        {job.status === 'approved' && 'Aprobado'}
-                                                        {job.status === 'paid' && 'Pagado'}
-                                                    </span>
-                                                </Badge>
-                                            )}
                                         </div>
 
                                         <p className="text-sm text-muted-foreground truncate">
@@ -188,6 +159,34 @@ export function InstallerJobsList({ initialJobs, rejectedCount }: { initialJobs:
                                     </div>
 
                                     <div className="flex flex-col items-end gap-1.5 self-center">
+                                        {isRejected ? (
+                                            <Badge variant="destructive" className="h-5 px-1.5 text-[10px] tracking-wide uppercase">
+                                                Incidencia
+                                            </Badge>
+                                        ) : (
+                                            <Badge variant="outline" className="text-muted-foreground gap-1.5 py-0.5 pr-2.5 pl-1.5 font-normal border">
+                                                {job.status === 'approved' || job.status === 'paid' ? (
+                                                    <CheckCircle className="h-3 w-3 fill-green-500 text-white" />
+                                                ) : (
+                                                    job.status === 'en_revision' ? (
+                                                        <Loader2 className="h-3 w-3 animate-spin text-blue-500" />
+                                                    ) : (
+                                                        <Loader2 className="h-3 w-3 text-amber-500" />
+                                                    )
+                                                )}
+                                                <span className={
+                                                    job.status === 'pending' ? 'text-amber-600' :
+                                                        job.status === 'en_revision' ? 'text-blue-600' :
+                                                            job.status === 'approved' ? 'text-green-600' :
+                                                                job.status === 'paid' ? 'text-gray-600' : ''
+                                                }>
+                                                    {job.status === 'pending' && 'Pendiente'}
+                                                    {job.status === 'en_revision' && 'Revisión'}
+                                                    {job.status === 'approved' && 'Aprobado'}
+                                                    {job.status === 'paid' && 'Pagado'}
+                                                </span>
+                                            </Badge>
+                                        )}
                                         <div className={`flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded-full
                                             ${job.status === 'paid'
                                                 ? 'bg-green-50 text-green-700 border border-green-100'

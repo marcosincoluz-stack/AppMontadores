@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { RejectionReasonDialog } from '@/components/rejection-reason-dialog'
 import { approveJob, rejectJob } from './actions'
@@ -20,6 +20,33 @@ export function ApprovalDetailView({ job, onProcessed }: ApprovalDetailViewProps
     const [isPending, startTransition] = useTransition()
     const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false)
     const [previewImage, setPreviewImage] = useState<string | null>(null)
+
+    useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
+                setPreviewImage(null)
+            } else if (previewImage && (event.key === 'ArrowRight' || event.key === 'ArrowLeft')) {
+                const currentIndex = job.evidence.findIndex((e: any) => e.url === previewImage)
+                if (currentIndex === -1) return
+
+                let newIndex
+                if (event.key === 'ArrowRight') {
+                    newIndex = (currentIndex + 1) % job.evidence.length
+                } else {
+                    newIndex = (currentIndex - 1 + job.evidence.length) % job.evidence.length
+                }
+                setPreviewImage(job.evidence[newIndex].url)
+            }
+        }
+
+        if (previewImage) {
+            window.addEventListener('keydown', handleKeyDown)
+        }
+
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown)
+        }
+    }, [previewImage, job.evidence])
 
     const photos = job.evidence.filter((e: any) => e.type === 'photo')
     const signatures = job.evidence.filter((e: any) => e.type === 'signature')
