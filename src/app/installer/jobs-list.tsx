@@ -50,9 +50,11 @@ export function InstallerJobsList({ initialJobs, rejectedCount, userId }: { init
     // Focus input when search opens
     useEffect(() => {
         if (isSearchOpen) {
+            // Slight delay to ensure animation has started/input is mounted
+            // 300ms is usually safe for mobile keyboards to trigger after an interaction
             setTimeout(() => {
                 searchInputRef.current?.focus()
-            }, 100)
+            }, 300)
         }
     }, [isSearchOpen])
 
@@ -201,6 +203,7 @@ export function InstallerJobsList({ initialJobs, rejectedCount, userId }: { init
                             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                             <Input
                                 ref={searchInputRef}
+                                autoFocus
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 placeholder="Buscar cliente, dirección..."
