@@ -35,7 +35,8 @@ export function InstallerJobsList({ initialJobs, rejectedCount, userId }: { init
     const [userLocation, setUserLocation] = useState<{ lat: number, lng: number } | null>(null)
     const [permissionDenied, setPermissionDenied] = useState(false)
     const router = useRouter()
-    const supabase = createClient()
+    // Fix: Ensure supabase client is stable across renders
+    const [supabase] = useState(() => createClient())
 
     // Realtime Subscription
     useEffect(() => {
