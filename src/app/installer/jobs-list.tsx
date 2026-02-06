@@ -11,10 +11,10 @@ import { IncidentStartupDialog } from '@/components/incident-startup-dialog'
 import { NotificationsBtn } from '@/components/notifications-btn'
 import { createClient } from '@/utils/supabase/client'
 import type { Database } from '@/types/supabase'
+import { format } from 'date-fns'
+import { es } from 'date-fns/locale'
+import { JobWithDetails } from '@/types/app'
 import { useRouter } from 'next/navigation'
-
-type Job = any // Using any for now to avoid extensive type definitions, or define a shape
-// Idealmente: Database['public']['Tables']['jobs']['Row']
 
 function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
     const R = 6371e3 // metres
@@ -32,8 +32,8 @@ function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
     return d
 }
 
-export function InstallerJobsList({ initialJobs, rejectedCount, userId }: { initialJobs: any[], rejectedCount: number, userId: string }) {
-    const [jobs, setJobs] = useState(initialJobs)
+export function InstallerJobsList({ initialJobs, rejectedCount, userId }: { initialJobs: JobWithDetails[], rejectedCount: number, userId: string }) {
+    const [jobs, setJobs] = useState<JobWithDetails[]>(initialJobs)
     const [userLocation, setUserLocation] = useState<{ lat: number, lng: number } | null>(null)
     const [permissionDenied, setPermissionDenied] = useState(false)
     const [historyLimit, setHistoryLimit] = useState(15)
@@ -71,17 +71,24 @@ export function InstallerJobsList({ initialJobs, rejectedCount, userId }: { init
                     filter: `assigned_to=eq.${userId}`
                 },
                 (payload) => {
-                    console.log('Realtime change received:', payload)
                     // Optimistic update or just refresh? 
                     // Refresh is safer to get full data and consistent sorting, 
                     // but we can also manually update the state for speed.
 
                     if (payload.eventType === 'INSERT') {
-                        setJobs((current) => [...current, payload.new])
-                        router.refresh() // Sync server components
+                        // Realtime INSERT doesn't have joined data (evidence). We make a best guess.
+                        const newJob = { ...payload.new, evidence: [] } as unknown as JobWithDetails
+                        setJobs((current) => [...current, newJob])
+                        router.refresh() // Validates the real data from server
                     } else if (payload.eventType === 'UPDATE') {
                         setJobs((current) =>
-                            current.map((job) => (job.id === payload.new.id ? payload.new : job))
+                            current.map((job) => {
+                                if (job.id === payload.new.id) {
+                                    // Preserve existing evidence since Realtime doesn't send joins
+                                    return { ...job, ...payload.new }
+                                }
+                                return job
+                            })
                         )
                         router.refresh()
                     } else if (payload.eventType === 'DELETE') {
@@ -164,12 +171,14 @@ export function InstallerJobsList({ initialJobs, rejectedCount, userId }: { init
             }
 
             // Fallback: Sort by Date (newest first)
-            return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+            const dateA = a.created_at ? new Date(a.created_at).getTime() : 0
+            const dateB = b.created_at ? new Date(b.created_at).getTime() : 0
+            return dateB - dateA
         })
     }, [jobs, userLocation, searchQuery])
 
     const activeJobs = sortedJobs.filter(job =>
-        job.status === 'pending' || job.status === 'en_revision' || (job.status === 'pending' && job.rejection_reason)
+        job.status === 'pending' || job.status === 'en_revision'
     )
     const completedJobs = sortedJobs.filter(job =>
         job.status === 'approved' || job.status === 'paid'
@@ -200,24 +209,25 @@ export function InstallerJobsList({ initialJobs, rejectedCount, userId }: { init
                 ) : (
                     <div className="flex items-center w-full gap-2 animate-in fade-in slide-in-from-right-10 duration-200">
                         <div className="relative flex-1">
-                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                             <Input
                                 ref={searchInputRef}
                                 autoFocus
+                                enterKeyHint="search"
+                                type="search"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 placeholder="Buscar cliente, dirección..."
-                                className="pl-9 h-10 bg-background"
+                                className="pl-10 h-11 bg-background text-base" // Text-base prevents iOS zoom
                             />
                         </div>
                         <Button
                             variant="ghost"
-                            size="sm"
                             onClick={() => {
                                 setIsSearchOpen(false)
                                 setSearchQuery('')
                             }}
-                            className="shrink-0 text-muted-foreground hover:text-foreground"
+                            className="shrink-0 h-11 px-4 text-base font-medium text-muted-foreground hover:text-foreground active:bg-accent"
                         >
                             Cancelar
                         </Button>
@@ -229,7 +239,15 @@ export function InstallerJobsList({ initialJobs, rejectedCount, userId }: { init
 
             <div className="space-y-6">
                 {/* Active Jobs Section */}
-                <div className="space-y-2">
+                <div
+                    className="space-y-2 touch-pan-y"
+                    onTouchStart={() => {
+                        // Dismiss keyboard when scrolling/touching the list
+                        if (document.activeElement instanceof HTMLElement) {
+                            document.activeElement.blur()
+                        }
+                    }}
+                >
                     {activeJobs.map((job: any) => (
                         <JobCard key={job.id} job={job} userLocation={userLocation} />
                     ))}
@@ -263,14 +281,34 @@ export function InstallerJobsList({ initialJobs, rejectedCount, userId }: { init
             </div>
 
             {(!sortedJobs || sortedJobs.length === 0) && (
-                <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground space-y-3">
-                    <div className="bg-muted p-3 rounded-full">
-                        <CheckCircle className="h-6 w-6" />
+                <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground space-y-4">
+                    <div className="bg-muted p-4 rounded-full">
+                        {searchQuery ? (
+                            <Search className="h-8 w-8 opacity-50" />
+                        ) : (
+                            <CheckCircle className="h-8 w-8 opacity-50" />
+                        )}
                     </div>
-                    <div className="space-y-1">
-                        <p className="font-medium">Todo al día</p>
-                        <p className="text-xs">No tienes trabajos asignados.</p>
+                    <div className="space-y-1 max-w-[250px]">
+                        <p className="font-medium text-lg text-foreground">
+                            {searchQuery ? 'Sin resultados' : 'Todo al día'}
+                        </p>
+                        <p className="text-sm">
+                            {searchQuery
+                                ? `No encontramos nada para "${searchQuery}"`
+                                : 'No tienes trabajos asignados pendientes.'
+                            }
+                        </p>
                     </div>
+                    {searchQuery && (
+                        <Button
+                            variant="outline"
+                            onClick={() => setSearchQuery('')}
+                            className="mt-2 min-w-[150px]"
+                        >
+                            Limpiar búsqueda
+                        </Button>
+                    )}
                 </div>
             )}
         </div>

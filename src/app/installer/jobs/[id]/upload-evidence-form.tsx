@@ -24,6 +24,7 @@ export function UploadEvidenceForm({
     evidenceType?: 'photo' | 'signature'
 }) {
     const [isUploading, setIsUploading] = useState(false)
+    const [failedFile, setFailedFile] = useState<File | null>(null)
     const supabase = createClient()
     const router = useRouter()
 
@@ -40,6 +41,7 @@ export function UploadEvidenceForm({
 
     const handleUpload = async (fileToProcess: File) => {
         setIsUploading(true)
+        setFailedFile(null)
         try {
             // Try to get session, with fallback to explicit refresh
             let { data: { session }, error: authError } = await supabase.auth.getSession()
@@ -134,6 +136,7 @@ export function UploadEvidenceForm({
         } catch (error: any) {
             console.error('Upload error:', error)
             toast.error('Error al subir: ' + error.message)
+            setFailedFile(fileToProcess)
         } finally {
             setIsUploading(false)
             // Reset input if needed, though react re-render might handle it
@@ -142,7 +145,7 @@ export function UploadEvidenceForm({
 
     return (
         <div className="w-full">
-            <Card className={`border-dashed border-2 hover:bg-slate-50 transition-colors cursor-pointer group relative overflow-hidden ${isUploading ? 'bg-blue-50 border-blue-200' : 'bg-gray-50/50 border-gray-200'}`}>
+            <Card className={`border-dashed border-2 hover:bg-slate-50 transition-colors cursor-pointer group relative overflow-hidden ${isUploading ? 'bg-blue-50 border-blue-200' : failedFile ? 'bg-red-50 border-red-200' : 'bg-gray-50/50 border-gray-200'}`}>
                 <CardContent className="p-0">
                     <div className="relative h-24 flex flex-col items-center justify-center gap-2 p-2">
                         {isUploading ? (
@@ -150,6 +153,39 @@ export function UploadEvidenceForm({
                                 <Loader2 className="h-6 w-6 text-blue-500 animate-spin" />
                                 <span className="text-[10px] text-blue-600 font-medium">Subiendo...</span>
                             </>
+                        ) : failedFile ? (
+                            <div className="flex flex-col items-center gap-2 w-full px-2">
+                                <span className="text-xs font-semibold text-red-600 text-center">
+                                    Error al subir
+                                </span>
+                                <span className="text-[10px] text-gray-500 truncate max-w-full">
+                                    {failedFile.name}
+                                </span>
+                                <div className="flex gap-2 w-full">
+                                    <Button
+                                        size="sm"
+                                        variant="destructive"
+                                        className="h-7 text-xs flex-1"
+                                        onClick={(e) => {
+                                            e.stopPropagation()
+                                            handleUpload(failedFile)
+                                        }}
+                                    >
+                                        Reintentar
+                                    </Button>
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="h-7 text-xs flex-1"
+                                        onClick={(e) => {
+                                            e.stopPropagation()
+                                            setFailedFile(null)
+                                        }}
+                                    >
+                                        Cancelar
+                                    </Button>
+                                </div>
+                            </div>
                         ) : (
                             <>
                                 <div className="p-2 bg-blue-100/50 rounded-full text-blue-600 group-hover:scale-110 transition-transform">
@@ -168,7 +204,7 @@ export function UploadEvidenceForm({
                             accept="image/*"
                             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                             onChange={handleFileSelect}
-                            disabled={isUploading}
+                            disabled={isUploading || !!failedFile}
                         />
                     </div>
                 </CardContent>

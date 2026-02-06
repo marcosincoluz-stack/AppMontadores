@@ -11,8 +11,10 @@ import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 
+import { JobWithDetails } from '@/types/app'
+
 interface ApprovalDetailViewProps {
-    job: any
+    job: JobWithDetails
     onProcessed: () => void
 }
 
@@ -26,7 +28,7 @@ export function ApprovalDetailView({ job, onProcessed }: ApprovalDetailViewProps
             if (event.key === 'Escape') {
                 setPreviewImage(null)
             } else if (previewImage && (event.key === 'ArrowRight' || event.key === 'ArrowLeft')) {
-                const currentIndex = job.evidence.findIndex((e: any) => e.url === previewImage)
+                const currentIndex = job.evidence.findIndex((e) => e.url === previewImage)
                 if (currentIndex === -1) return
 
                 let newIndex
@@ -48,8 +50,8 @@ export function ApprovalDetailView({ job, onProcessed }: ApprovalDetailViewProps
         }
     }, [previewImage, job.evidence])
 
-    const photos = job.evidence.filter((e: any) => e.type === 'photo')
-    const signatures = job.evidence.filter((e: any) => e.type === 'signature')
+    const photos = job.evidence.filter((e) => e.type === 'photo')
+    const signatures = job.evidence.filter((e) => e.type === 'signature')
 
     const handleApprove = () => {
         startTransition(async () => {
@@ -80,14 +82,14 @@ export function ApprovalDetailView({ job, onProcessed }: ApprovalDetailViewProps
     }
 
     const handleDownloadAll = () => {
-        job.evidence.forEach((e: any) => window.open(e.url, '_blank'))
+        job.evidence.forEach((e) => window.open(e.url, '_blank'))
     }
 
     return (
         <div className="flex flex-col h-full bg-background">
             {/* Header */}
             <div className="flex flex-col border-b bg-background px-6 py-4">
-                <div className="flex items-start justify-between">
+                <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
                     <div className="space-y-1">
                         <h2 className="text-2xl font-bold leading-tight tracking-tight">{job.title}</h2>
                         <div className="text-sm text-muted-foreground flex items-center gap-2">
@@ -96,7 +98,7 @@ export function ApprovalDetailView({ job, onProcessed }: ApprovalDetailViewProps
                             <span>{job.address}</span>
                         </div>
                     </div>
-                    <div className="flex flex-col items-end">
+                    <div className="flex flex-col items-start md:items-end">
                         <span className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Monto Estimado</span>
                         <span className="text-2xl font-bold tabular-nums">
                             {job.amount ? `${job.amount}€` : '-'}
@@ -134,7 +136,7 @@ export function ApprovalDetailView({ job, onProcessed }: ApprovalDetailViewProps
                         </div>
                     ) : (
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 pb-24">
-                            {job.evidence.map((item: any) => (
+                            {job.evidence.map((item) => (
                                 <div key={item.id} className="group relative break-inside-avoid overflow-hidden rounded-lg border bg-background shadow-sm transition-all hover:shadow-md">
                                     <div className="aspect-square relative cursor-zoom-in" onClick={() => setPreviewImage(item.url)}>
                                         <img
@@ -161,11 +163,11 @@ export function ApprovalDetailView({ job, onProcessed }: ApprovalDetailViewProps
 
             {/* Footer Actions (Sticky) */}
             <div className="border-t bg-background p-4 shadow-2xl z-20">
-                <div className="flex items-center justify-between gap-4 max-w-4xl mx-auto">
+                <div className="flex flex-col-reverse md:flex-row items-center justify-between gap-3 md:gap-4 max-w-4xl mx-auto">
                     <Button
                         variant="ghost"
                         onClick={() => setIsRejectDialogOpen(true)}
-                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                        className="w-full md:w-auto text-destructive hover:text-destructive hover:bg-destructive/10"
                         disabled={isPending}
                     >
                         <XCircle className="w-5 h-5 mr-2" />
@@ -175,7 +177,7 @@ export function ApprovalDetailView({ job, onProcessed }: ApprovalDetailViewProps
                     <Button
                         onClick={handleApprove}
                         disabled={isPending}
-                        className="min-w-[200px] h-11 text-base shadow-lg transition-all hover:translate-y-[-1px] active:translate-y-[0px]"
+                        className="w-full md:w-auto md:min-w-[200px] h-12 md:h-11 text-base shadow-lg transition-all hover:translate-y-[-1px] active:translate-y-[0px]"
                     >
                         {isPending ? (
                             <Loader2 className="w-5 h-5 mr-2 animate-spin" />
@@ -209,7 +211,7 @@ export function ApprovalDetailView({ job, onProcessed }: ApprovalDetailViewProps
                             className="max-w-full max-h-full rounded-md shadow-2xl object-contain animate-in zoom-in-95 duration-200"
                         />
                         <Button
-                            className="absolute top-4 right-4 rounded-full w-10 h-10 p-0"
+                            className="absolute top-4 right-4 rounded-full w-12 h-12 md:w-10 md:h-10 p-0 shadow-lg z-50"
                             variant="secondary"
                             onClick={(e) => {
                                 e.stopPropagation()
