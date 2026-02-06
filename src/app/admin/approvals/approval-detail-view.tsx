@@ -8,7 +8,6 @@ import { toast } from 'sonner'
 import { CheckCircle, Loader2, XCircle, Camera, FileSignature, AlertCircle, Download, Maximize2 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 
 import { JobWithDetails } from '@/types/app'
@@ -126,23 +125,23 @@ export function ApprovalDetailView({ job, onProcessed }: ApprovalDetailViewProps
                 </div>
             </div>
 
-            {/* Evidence Grid (Scrollable) */}
-            <ScrollArea className="flex-1">
-                <div className="p-6 bg-muted/10">
+            {/* Evidence Grid (Native Scroll) */}
+            <div className="flex-1 overflow-y-auto min-h-0 bg-muted/10">
+                <div className="p-6">
                     {job.evidence.length === 0 ? (
                         <div className="flex flex-col items-center justify-center h-[300px] text-muted-foreground border-2 border-dashed rounded-lg bg-background">
                             <AlertCircle className="w-10 h-10 mb-3 opacity-20" />
                             <p className="font-medium">No hay evidencias subidas</p>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 pb-24">
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 pb-4">
                             {job.evidence.map((item) => (
                                 <div key={item.id} className="group relative break-inside-avoid overflow-hidden rounded-lg border bg-background shadow-sm transition-all hover:shadow-md">
                                     <div className="aspect-[3/4] relative cursor-zoom-in" onClick={() => setPreviewImage(item.url)}>
                                         <img
                                             src={item.url}
                                             alt="Evidencia"
-                                            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                            className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                                             loading="lazy"
                                         />
                                         <div className="absolute inset-0 bg-black/0 transition-colors group-hover:bg-black/10 flex items-center justify-center opacity-0 group-hover:opacity-100">
@@ -159,7 +158,7 @@ export function ApprovalDetailView({ job, onProcessed }: ApprovalDetailViewProps
                         </div>
                     )}
                 </div>
-            </ScrollArea>
+            </div>
 
             {/* Footer Actions (Sticky) */}
             <div className="border-t bg-background p-4 shadow-2xl z-20">
