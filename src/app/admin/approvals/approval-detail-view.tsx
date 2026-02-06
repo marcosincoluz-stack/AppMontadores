@@ -138,7 +138,7 @@ export function ApprovalDetailView({ job, onProcessed }: ApprovalDetailViewProps
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 pb-24">
                             {job.evidence.map((item) => (
                                 <div key={item.id} className="group relative break-inside-avoid overflow-hidden rounded-lg border bg-background shadow-sm transition-all hover:shadow-md">
-                                    <div className="aspect-square relative cursor-zoom-in" onClick={() => setPreviewImage(item.url)}>
+                                    <div className="aspect-[3/4] relative cursor-zoom-in" onClick={() => setPreviewImage(item.url)}>
                                         <img
                                             src={item.url}
                                             alt="Evidencia"
